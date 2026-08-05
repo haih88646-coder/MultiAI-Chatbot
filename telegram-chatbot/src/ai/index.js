@@ -1,6 +1,8 @@
 const { queryGemini } = require('./gemini');
 const { queryOpenRouter } = require('./openrouter');
 const { queryNvidiaNim } = require('./nvidia');
+const { OPENROUTER_MODELS } = require('./openrouter');
+const { NVIDIA_MODELS } = require('./nvidia');
 const Conversation = require('../models/Conversation');
 const Settings = require('../models/Settings');
 
@@ -80,14 +82,32 @@ async function query(prompt, userId, modelPreference = 'default') {
         response = await queryOpenRouter(
           prompt,
           recentHistory,
-          process.env.OPENROUTER_API_KEY
+          process.env.OPENROUTER_API_KEY,
+          'openai/gpt-oss-20b:free'
+        );
+        break;
+      case 'cohere':
+        response = await queryOpenRouter(
+          prompt,
+          recentHistory,
+          process.env.OPENROUTER_API_KEY,
+          'cohere/north-mini-code:free'
         );
         break;
       case 'nvidia':
         response = await queryNvidiaNim(
           prompt,
           recentHistory,
-          process.env.NVIDIA_NIM_API_KEY
+          process.env.NVIDIA_NIM_API_KEY,
+          'mistralai/mistral-nemotron'
+        );
+        break;
+      case 'llama':
+        response = await queryNvidiaNim(
+          prompt,
+          recentHistory,
+          process.env.NVIDIA_NIM_API_KEY,
+          'meta/llama-3.1-8b-instruct'
         );
         break;
       default:

@@ -1,7 +1,15 @@
-async function queryOpenRouter(prompt, conversationHistory, apiKey) {
+const DEFAULT_OPENROUTER_MODEL = 'openai/gpt-oss-20b:free';
+const OPENROUTER_MODELS = {
+  'openai/gpt-oss-20b:free': { display: 'GPT-OSS 20B', speed: 'fast' },
+  'cohere/north-mini-code:free': { display: 'Cohere North Mini', speed: 'fast' },
+};
+
+async function queryOpenRouter(prompt, conversationHistory, apiKey, modelName) {
   if (!apiKey) {
     return '⚠️ OpenRouter API key is not configured. Please contact the bot owner.';
   }
+
+  const model = modelName && OPENROUTER_MODELS[modelName] ? modelName : DEFAULT_OPENROUTER_MODEL;
 
   try {
     const messages = [];
@@ -40,7 +48,7 @@ async function queryOpenRouter(prompt, conversationHistory, apiKey) {
         'X-Title': 'Telegram AI Chatbot'
       },
       body: JSON.stringify({
-        model: 'openai/gpt-oss-20b:free',
+        model: model,
         messages: messages,
         temperature: 0.7,
         max_tokens: 2048
@@ -72,4 +80,4 @@ async function queryOpenRouter(prompt, conversationHistory, apiKey) {
   }
 }
 
-module.exports = { queryOpenRouter };
+module.exports = { queryOpenRouter, OPENROUTER_MODELS, DEFAULT_OPENROUTER_MODEL };

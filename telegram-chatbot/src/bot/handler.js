@@ -47,6 +47,18 @@ function createBot() {
         settings.defaultModel = 'openrouter';
         await settings.save();
       }
+      if (settings && settings.enabledModels) {
+        let changed = false;
+        if (settings.enabledModels['cohere'] === undefined) {
+          settings.enabledModels['cohere'] = true;
+          changed = true;
+        }
+        if (settings.enabledModels['llama'] === undefined) {
+          settings.enabledModels['llama'] = true;
+          changed = true;
+        }
+        if (changed) await settings.save();
+      }
       return settings;
     } catch (e) {
       console.error('ensureSettings error:', e.message);
@@ -201,13 +213,15 @@ function createBot() {
     const settings = await Settings.findOne().catch(e => { console.error('Settings lookup error:', e.message); return null; });
 
     const currentModel = user.selectedModel === 'default'
-      ? (settings?.defaultModel || 'gemini')
+      ? (settings?.defaultModel || 'openrouter')
       : user.selectedModel;
 
-       modelDisplayNames = {
+    const modelDisplayNames = {
       gemini: '🌐 Gemini 2.0 Flash (Google)',
       openrouter: '🔗 GPT-OSS 20B (OpenRouter)',
+      cohere: '🔗 Cohere North Mini (OpenRouter)',
       nvidia: '🚀 Mistral Nemotron (Nvidia NIM)',
+      llama: '🦙 Llama 3.1 8B (Nvidia NIM)',
     };
 
     const currentModelLabel = modelDisplayNames[currentModel] || currentModel;
@@ -254,12 +268,16 @@ function createBot() {
 
   bot.action('choose_provider_openrouter', async (ctx) => {
     await ctx.answerCbQuery();
+    const settings = await Settings.findOne().catch(() => null);
     const buttons = [
       [Markup.button.callback('🔗 GPT-OSS 20B', 'model_openrouter')],
-      [Markup.button.callback('🔙 Back', 'show_providers')],
     ];
+    if (settings?.enabledModels?.cohere !== false) {
+      buttons.splice(1, 0, [Markup.button.callback('🔗 Cohere North Mini', 'model_cohere')]);
+    }
+    buttons.push([Markup.button.callback('🔙 Back', 'show_providers')]);
     return ctx.editMessageText(
-      `🔗 *OpenRouter*\n\nAvailable models:\n• GPT-OSS 20B (free)\n\nSelect a model:`,
+      `🔗 *OpenRouter*\n\nAvailable models:\n• GPT-OSS 20B (free)\n• Cohere North Mini (free)\n\nSelect a model:`,
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard(buttons),
@@ -273,9 +291,12 @@ function createBot() {
     const buttons = [
       [Markup.button.callback('🚀 Mistral Nemotron', 'model_nvidia')],
     ];
+    if (settings?.enabledModels?.llama !== false) {
+      buttons.splice(1, 0, [Markup.button.callback('🦙 Llama 3.1 8B', 'model_llama')]);
+    }
     buttons.push([Markup.button.callback('🔙 Back', 'show_providers')]);
     return ctx.editMessageText(
-      `🚀 *Nvidia NIM*\n\nAvailable models:\n• Mistral Nemotron\n\nSelect a model:`,
+      `🚀 *Nvidia NIM*\n\nAvailable models:\n• Mistral Nemotron (fast)\n• Llama 3.1 8B (medium)\n\nSelect a model:`,
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard(buttons),
@@ -289,13 +310,15 @@ function createBot() {
     const user = await getOrCreateUser(ctx);
 
     const currentModel = user.selectedModel === 'default'
-      ? (settings?.defaultModel || 'gemini')
+      ? (settings?.defaultModel || 'openrouter')
       : user.selectedModel;
 
-       modelDisplayNames = {
+    const modelDisplayNames = {
       gemini: '🌐 Gemini 2.0 Flash (Google)',
       openrouter: '🔗 GPT-OSS 20B (OpenRouter)',
+      cohere: '🔗 Cohere North Mini (OpenRouter)',
       nvidia: '🚀 Mistral Nemotron (Nvidia NIM)',
+      llama: '🦙 Llama 3.1 8B (Nvidia NIM)',
     };
 
     const currentModelLabel = modelDisplayNames[currentModel] || currentModel;
@@ -395,7 +418,9 @@ function createBot() {
         `Default Model: *${settings.defaultModel}*\n` +
         `Gemini: ${settings.enabledModels.gemini ? '✅' : '❌'}\n` +
         `OpenRouter: ${settings.enabledModels.openrouter ? '✅' : '❌'}\n` +
+        `Cohere: ${settings.enabledModels.cohere !== false ? '✅' : '❌'}\n` +
         `Nvidia NIM: ${settings.enabledModels.nvidia ? '✅' : '❌'}\n` +
+        `Llama: ${settings.enabledModels.llama !== false ? '✅' : '❌'}\n` +
         `Max History: *${settings.maxConversationHistory}* messages\n\n` +
         `Dashboard: ${process.env.APP_URL || 'http://localhost:3000'}/dashboard`,
       { parse_mode: 'Markdown' }
@@ -571,7 +596,9 @@ function createBot() {
     const modelNames = {
       gemini: '🌐 Gemini 2.0 Flash (Google)',
       openrouter: '🔗 GPT-OSS 20B (OpenRouter)',
+      cohere: '🔗 Cohere North Mini (OpenRouter)',
       nvidia: '🚀 Mistral Nemotron (Nvidia NIM)',
+      llama: '🦙 Llama 3.1 8B (Nvidia NIM)',
     };
 
     return ctx.reply(`✅ Model changed to *${modelNames[model] || model}*`, {
