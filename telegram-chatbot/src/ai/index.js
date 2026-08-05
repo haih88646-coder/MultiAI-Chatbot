@@ -1,6 +1,6 @@
 const { queryGemini } = require('./gemini');
 const { queryOpenRouter } = require('./openrouter');
-const { queryNvidiaNim } = require('./nvidia');
+const { queryNvidiaNim, queryNvidiaNimFlash } = require('./nvidia');
 const Conversation = require('../models/Conversation');
 const Settings = require('../models/Settings');
 
@@ -85,6 +85,13 @@ async function query(prompt, userId, modelPreference = 'default') {
         break;
       case 'nvidia':
         response = await queryNvidiaNim(
+          prompt,
+          recentHistory,
+          process.env.NVIDIA_NIM_API_KEY
+        );
+        break;
+      case 'nvidia-flash':
+        response = await queryNvidiaNimFlash(
           prompt,
           recentHistory,
           process.env.NVIDIA_NIM_API_KEY

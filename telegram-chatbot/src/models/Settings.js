@@ -8,7 +8,7 @@ const settingsSchema = new mongoose.Schema({
   },
   defaultModel: {
     type: String,
-    enum: ['gemini', 'openrouter', 'nvidia'],
+    enum: ['gemini', 'openrouter', 'nvidia', 'nvidia-flash'],
     default: 'gemini',
   },
   maxConversationHistory: {

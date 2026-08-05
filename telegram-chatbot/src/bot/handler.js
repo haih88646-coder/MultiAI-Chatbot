@@ -200,7 +200,10 @@ function createBot() {
       buttons.push([Markup.button.callback('🔗 OpenRouter (Gemini 2.0)', 'model_openrouter')]);
     }
     if (settings?.enabledModels?.nvidia !== false) {
-      buttons.push([Markup.button.callback('🚀 Nvidia NIM (Llama 3.1)', 'model_nvidia')]);
+      buttons.push([
+        Markup.button.callback('🚀 DeepSeek V4 Pro', 'model_nvidia'),
+        Markup.button.callback('⚡ DeepSeek V4 Flash', 'model_nvidia-flash'),
+      ]);
     }
 
     if (buttons.length === 0) {
@@ -210,7 +213,8 @@ function createBot() {
     const modelDisplayNames = {
       gemini: '🌐 Gemini 2.0 Flash (Google)',
       openrouter: '🔗 OpenRouter (Gemini 2.0)',
-      nvidia: '🚀 Nvidia NIM (Llama 3.1)',
+      nvidia: '🚀 DeepSeek V4 Pro (Nvidia NIM)',
+      'nvidia-flash': '⚡ DeepSeek V4 Flash (Nvidia NIM)',
     };
 
     const currentModel = user.selectedModel === 'default'
@@ -479,7 +483,8 @@ function createBot() {
     const modelNames = {
       gemini: '🌐 Gemini 2.0 Flash (Google)',
       openrouter: '🔗 OpenRouter (Gemini 2.0)',
-      nvidia: '🚀 Nvidia NIM (Llama 3.1)',
+      nvidia: '🚀 DeepSeek V4 Pro (Nvidia NIM)',
+      'nvidia-flash': '⚡ DeepSeek V4 Flash (Nvidia NIM)',
     };
 
     return ctx.reply(`✅ Model changed to *${modelNames[model] || model}*`, {
