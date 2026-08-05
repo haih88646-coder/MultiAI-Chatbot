@@ -55,7 +55,7 @@ async function query(prompt, userId, modelPreference = 'default') {
 
     // Check if model is enabled
     if (settings && settings.enabledModels) {
-      if (!settings.enabledModels[selectedModel]) {
+      if (settings.enabledModels[selectedModel] === false) {
         return `The ${selectedModel} model is currently disabled by the admin. Please choose another model using /model command.`;
       }
     }

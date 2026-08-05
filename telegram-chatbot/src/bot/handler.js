@@ -39,6 +39,10 @@ function createBot() {
         settings = new Settings();
         await settings.save();
       }
+      if (settings.enabledModels && settings.enabledModels['nvidia-flash'] === undefined) {
+        settings.enabledModels['nvidia-flash'] = true;
+        await settings.save();
+      }
       return settings;
     } catch (e) {
       console.error('ensureSettings error:', e.message);
@@ -262,11 +266,14 @@ function createBot() {
 
   bot.action('choose_provider_nvidia', async (ctx) => {
     await ctx.answerCbQuery();
+    const settings = await Settings.findOne().catch(() => null);
     const buttons = [
       [Markup.button.callback('🚀 DeepSeek V4 Pro', 'model_nvidia')],
-      [Markup.button.callback('⚡ DeepSeek V4 Flash', 'model_nvidia-flash')],
-      [Markup.button.callback('🔙 Back', 'show_providers')],
     ];
+    if (settings?.enabledModels?.['nvidia-flash'] !== false) {
+      buttons.splice(1, 0, [Markup.button.callback('⚡ DeepSeek V4 Flash', 'model_nvidia-flash')]);
+    }
+    buttons.push([Markup.button.callback('🔙 Back', 'show_providers')]);
     return ctx.editMessageText(
       `🚀 *Nvidia NIM*\n\nAvailable models:\n• DeepSeek V4 Pro (no thinking)\n• DeepSeek V4 Flash (with reasoning)\n\nSelect a model:`,
       {
@@ -550,7 +557,7 @@ function createBot() {
       console.error('Settings lookup error:', e.message);
     }
 
-    if (settings && settings.enabledModels && !settings.enabledModels[model]) {
+    if (settings && settings.enabledModels && settings.enabledModels[model] === false) {
       return ctx.reply(`⚠️ The ${model} model is currently disabled by the admin.`);
     }
 

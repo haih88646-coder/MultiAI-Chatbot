@@ -5,6 +5,7 @@ const settingsSchema = new mongoose.Schema({
     gemini: { type: Boolean, default: true },
     openrouter: { type: Boolean, default: true },
     nvidia: { type: Boolean, default: true },
+    'nvidia-flash': { type: Boolean, default: true },
   },
   defaultModel: {
     type: String,
