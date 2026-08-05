@@ -1,8 +1,17 @@
 const fetch = require('node-fetch');
 
 async function queryNvidiaNim(prompt, conversationHistory, apiKey) {
+  if (!apiKey) {
+    return '⚠️ NVIDIA NIM API key is not configured. Please contact the bot owner.';
+  }
+
   try {
-    const messages = [];
+    const messages = [
+      {
+        role: 'system',
+        content: 'You are a helpful AI assistant. Answer questions accurately and concisely.'
+      }
+    ];
 
     // Add conversation history
     if (conversationHistory && conversationHistory.length > 0) {
@@ -45,6 +54,11 @@ async function queryNvidiaNim(prompt, conversationHistory, apiKey) {
 
     const data = await response.json();
 
+    if (!response.ok) {
+      const msg = data.detail || data.error?.message || data.error || `HTTP ${response.status}`;
+      throw new Error(`NVIDIA NIM API error: ${msg}`);
+    }
+
     if (data.error) {
       throw new Error(data.error.message || 'Nvidia NIM API error');
     }
@@ -53,7 +67,7 @@ async function queryNvidiaNim(prompt, conversationHistory, apiKey) {
       return data.choices[0].message.content;
     }
 
-    return 'Sorry, I could not generate a response.';
+    return 'Sorry, I could not generate a response. The model may have been blocked or unavailable.';
   } catch (error) {
     console.error('Nvidia NIM API Error:', error.message);
     return `Error: ${error.message}`;
@@ -61,8 +75,17 @@ async function queryNvidiaNim(prompt, conversationHistory, apiKey) {
 }
 
 async function queryNvidiaNimFlash(prompt, conversationHistory, apiKey) {
+  if (!apiKey) {
+    return '⚠️ NVIDIA NIM API key is not configured. Please contact the bot owner.';
+  }
+
   try {
-    const messages = [];
+    const messages = [
+      {
+        role: 'system',
+        content: 'You are a helpful AI assistant. Answer questions accurately and concisely.'
+      }
+    ];
 
     // Add conversation history
     if (conversationHistory && conversationHistory.length > 0) {
@@ -106,6 +129,11 @@ async function queryNvidiaNimFlash(prompt, conversationHistory, apiKey) {
 
     const data = await response.json();
 
+    if (!response.ok) {
+      const msg = data.detail || data.error?.message || data.error || `HTTP ${response.status}`;
+      throw new Error(`NVIDIA NIM API error: ${msg}`);
+    }
+
     if (data.error) {
       throw new Error(data.error.message || 'Nvidia NIM API error');
     }
@@ -114,7 +142,7 @@ async function queryNvidiaNimFlash(prompt, conversationHistory, apiKey) {
       return data.choices[0].message.content;
     }
 
-    return 'Sorry, I could not generate a response.';
+    return 'Sorry, I could not generate a response. The model may have been blocked or unavailable.';
   } catch (error) {
     console.error('Nvidia NIM API Error:', error.message);
     return `Error: ${error.message}`;

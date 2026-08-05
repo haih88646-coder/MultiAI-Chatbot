@@ -1,6 +1,10 @@
 const fetch = require('node-fetch');
 
 async function queryOpenRouter(prompt, conversationHistory, apiKey) {
+  if (!apiKey) {
+    return '⚠️ OpenRouter API key is not configured. Please contact the bot owner.';
+  }
+
   try {
     const messages = [];
 
@@ -44,15 +48,16 @@ async function queryOpenRouter(prompt, conversationHistory, apiKey) {
 
     const data = await response.json();
 
-    if (data.error) {
-      throw new Error(data.error.message || 'OpenRouter API error');
+    if (!response.ok || data.error) {
+      const msg = data.error?.message || data.error || `HTTP ${response.status}`;
+      throw new Error(`OpenRouter API error: ${msg}`);
     }
 
     if (data.choices && data.choices[0] && data.choices[0].message) {
       return data.choices[0].message.content;
     }
 
-    return 'Sorry, I could not generate a response.';
+    return 'Sorry, I could not generate a response. The model may have been blocked or unavailable.';
   } catch (error) {
     console.error('OpenRouter API Error:', error.message);
     return `Error: ${error.message}`;

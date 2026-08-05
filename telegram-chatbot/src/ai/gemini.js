@@ -1,6 +1,10 @@
 const fetch = require('node-fetch');
 
 async function queryGemini(prompt, conversationHistory, apiKey) {
+  if (!apiKey) {
+    return '⚠️ Gemini API key is not configured. Please contact the bot owner.';
+  }
+
   try {
     const contents = [];
 
@@ -59,8 +63,9 @@ async function queryGemini(prompt, conversationHistory, apiKey) {
 
     const data = await response.json();
 
-    if (data.error) {
-      throw new Error(data.error.message || 'Gemini API error');
+    if (!response.ok || data.error) {
+      const msg = data.error?.message || data.error || `HTTP ${response.status}`;
+      throw new Error(`Gemini API error: ${msg}`);
     }
 
     if (
@@ -72,7 +77,7 @@ async function queryGemini(prompt, conversationHistory, apiKey) {
       return data.candidates[0].content.parts[0].text;
     }
 
-    return 'Sorry, I could not generate a response.';
+    return 'Sorry, I could not generate a response. The model may have blocked the request due to safety filters.';
   } catch (error) {
     console.error('Gemini API Error:', error.message);
     return `Error: ${error.message}`;
