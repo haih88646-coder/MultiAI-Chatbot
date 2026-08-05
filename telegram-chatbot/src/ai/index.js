@@ -1,7 +1,5 @@
-const { queryGemini } = require('./gemini');
 const { queryOpenRouter } = require('./openrouter');
 const { queryNvidiaNim } = require('./nvidia');
-const { OPENROUTER_MODELS } = require('./openrouter');
 const { NVIDIA_MODELS } = require('./nvidia');
 const Conversation = require('../models/Conversation');
 const Settings = require('../models/Settings');
@@ -71,13 +69,6 @@ async function query(prompt, userId, modelPreference = 'default') {
     let response;
 
     switch (selectedModel) {
-      case 'gemini':
-        response = await queryGemini(
-          prompt,
-          recentHistory,
-          process.env.GEMINI_API_KEY
-        );
-        break;
       case 'openrouter':
         response = await queryOpenRouter(
           prompt,
@@ -134,11 +125,28 @@ async function query(prompt, userId, modelPreference = 'default') {
           'meta/llama-3.1-8b-instruct'
         );
         break;
-      default:
-        response = await queryGemini(
+      case 'inkling':
+        response = await queryNvidiaNim(
           prompt,
           recentHistory,
-          process.env.GEMINI_API_KEY
+          process.env.NVIDIA_NIM_API_KEY,
+          'thinkingmachines/inkling'
+        );
+        break;
+      case 'deepseek-flash':
+        response = await queryNvidiaNim(
+          prompt,
+          recentHistory,
+          process.env.NVIDIA_NIM_API_KEY,
+          'deepseek-ai/deepseek-v4-flash'
+        );
+        break;
+      default:
+        response = await queryOpenRouter(
+          prompt,
+          recentHistory,
+          process.env.OPENROUTER_API_KEY,
+          'openai/gpt-oss-20b:free'
         );
     }
 

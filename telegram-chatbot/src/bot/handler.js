@@ -43,7 +43,15 @@ function createBot() {
         delete settings.enabledModels['nvidia-flash'];
         await settings.save();
       }
+      if (settings && settings.enabledModels && settings.enabledModels['gemini'] !== undefined) {
+        delete settings.enabledModels['gemini'];
+        await settings.save();
+      }
       if (settings && settings.defaultModel === 'nvidia-flash') {
+        settings.defaultModel = 'openrouter';
+        await settings.save();
+      }
+      if (settings && settings.defaultModel === 'gemini') {
         settings.defaultModel = 'openrouter';
         await settings.save();
       }
@@ -67,6 +75,14 @@ function createBot() {
         }
         if (settings.enabledModels['llama'] === undefined) {
           settings.enabledModels['llama'] = true;
+          changed = true;
+        }
+        if (settings.enabledModels['inkling'] === undefined) {
+          settings.enabledModels['inkling'] = true;
+          changed = true;
+        }
+        if (settings.enabledModels['deepseek-flash'] === undefined) {
+          settings.enabledModels['deepseek-flash'] = true;
           changed = true;
         }
         if (changed) await settings.save();
@@ -96,6 +112,21 @@ function createBot() {
     } catch (e) {
       console.error('getOrCreateUser error:', e.message);
       return { telegramId, isApproved: true, isOwner: true, selectedModel: 'openrouter', requestStatus: 'approved' };
+    }
+  }
+
+  // Migrate old model preferences
+  async function migrateUsers() {
+    try {
+      const result = await User.updateMany(
+        { selectedModel: { $in: ['gemini', 'nvidia-flash'] } },
+        { $set: { selectedModel: 'openrouter' } }
+      );
+      if (result.modified > 0) {
+        console.log('Migrated', result.modified, 'users from gemini/nvidia-flash to openrouter');
+      }
+    } catch (e) {
+      console.error('migrateUsers error:', e.message);
     }
   }
 
@@ -229,7 +260,6 @@ function createBot() {
       : user.selectedModel;
 
     const modelDisplayNames = {
-      gemini: '🌐 Gemini 2.0 Flash (Google)',
       openrouter: '🔗 GPT-OSS 20B (OpenRouter)',
       cohere: '🔗 Cohere North Mini (OpenRouter)',
       gemma: '🔷 Gemma 4 26B (OpenRouter)',
@@ -237,14 +267,13 @@ function createBot() {
       'or-free': '🆓 OpenRouter Free Pool (OpenRouter)',
       nvidia: '🚀 Mistral Nemotron (Nvidia NIM)',
       llama: '🦙 Llama 3.1 8B (Nvidia NIM)',
+      inkling: '🔤 ThinkingMachines Inkling (Nvidia NIM)',
+      'deepseek-flash': '⚡ DeepSeek V4 Flash (Nvidia NIM)',
     };
 
     const currentModelLabel = modelDisplayNames[currentModel] || currentModel;
 
     const buttons = [];
-    if (settings?.enabledModels?.gemini !== false) {
-      buttons.push([Markup.button.callback('🌐 Gemini', 'choose_provider_gemini')]);
-    }
     if (settings?.enabledModels?.openrouter !== false) {
       buttons.push([Markup.button.callback('🔗 OpenRouter', 'choose_provider_openrouter')]);
     }
@@ -268,15 +297,13 @@ function createBot() {
   // Handle provider selection — show model variants
   bot.action('choose_provider_gemini', async (ctx) => {
     await ctx.answerCbQuery();
-    const buttons = [
-      [Markup.button.callback('🌐 Gemini 2.0 Flash', 'model_gemini')],
-      [Markup.button.callback('🔙 Back', 'show_providers')],
-    ];
     return ctx.editMessageText(
-      `🌐 *Gemini (Google)*\n\nAvailable models:\n• Gemini 2.0 Flash\n\nSelect a model:`,
+      `🚫 *Gemini models have been removed.*\n\nPlease select another provider.`,
       {
         parse_mode: 'Markdown',
-        ...Markup.inlineKeyboard(buttons),
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback('🔙 Back', 'show_providers')],
+        ]),
       }
     );
   });
@@ -316,11 +343,17 @@ function createBot() {
       [Markup.button.callback('🚀 Mistral Nemotron', 'model_nvidia')],
     ];
     if (settings?.enabledModels?.llama !== false) {
-      buttons.splice(1, 0, [Markup.button.callback('🦙 Llama 3.1 8B', 'model_llama')]);
+      buttons.push([Markup.button.callback('🦙 Llama 3.1 8B', 'model_llama')]);
+    }
+    if (settings?.enabledModels?.inkling !== false) {
+      buttons.push([Markup.button.callback('🔤 Inkling', 'model_inkling')]);
+    }
+    if (settings?.enabledModels?.['deepseek-flash'] !== false) {
+      buttons.push([Markup.button.callback('⚡ DeepSeek V4 Flash (slow)', 'model_deepseek-flash')]);
     }
     buttons.push([Markup.button.callback('🔙 Back', 'show_providers')]);
     return ctx.editMessageText(
-      `🚀 *Nvidia NIM*\n\nAvailable models:\n• Mistral Nemotron (fast)\n• Llama 3.1 8B (medium)\n\nSelect a model:`,
+      `🚀 *Nvidia NIM*\n\nAvailable models:\n• Mistral Nemotron (fast)\n• Llama 3.1 8B (medium)\n• Inkling (fast, reasoning)\n• DeepSeek V4 Flash (slow, ~27s)\n\nSelect a model:`,
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard(buttons),
@@ -338,7 +371,6 @@ function createBot() {
       : user.selectedModel;
 
     const modelDisplayNames = {
-      gemini: '🌐 Gemini 2.0 Flash (Google)',
       openrouter: '🔗 GPT-OSS 20B (OpenRouter)',
       cohere: '🔗 Cohere North Mini (OpenRouter)',
       gemma: '🔷 Gemma 4 26B (OpenRouter)',
@@ -346,14 +378,13 @@ function createBot() {
       'or-free': '🆓 OpenRouter Free Pool (OpenRouter)',
       nvidia: '🚀 Mistral Nemotron (Nvidia NIM)',
       llama: '🦙 Llama 3.1 8B (Nvidia NIM)',
+      inkling: '🔤 Inkling (Nvidia NIM)',
+      'deepseek-flash': '⚡ DeepSeek V4 Flash (Nvidia NIM)',
     };
 
     const currentModelLabel = modelDisplayNames[currentModel] || currentModel;
 
     const buttons = [];
-    if (settings?.enabledModels?.gemini !== false) {
-      buttons.push([Markup.button.callback('🌐 Gemini', 'choose_provider_gemini')]);
-    }
     if (settings?.enabledModels?.openrouter !== false) {
       buttons.push([Markup.button.callback('🔗 OpenRouter', 'choose_provider_openrouter')]);
     }
@@ -443,14 +474,15 @@ function createBot() {
     return ctx.reply(
       '⚙️ *Current Settings*\n\n' +
         `Default Model: *${settings.defaultModel}*\n` +
-        `Gemini: ${settings.enabledModels.gemini ? '✅' : '❌'}\n` +
         `OpenRouter GPT-OSS: ${settings.enabledModels.openrouter ? '✅' : '❌'}\n` +
-        `OpenRouter Cohere: ${settings.enabledModels.cohere ? '✅' : '❌'}\n` +
-        `OpenRouter Gemma 26B: ${settings.enabledModels.gemma ? '✅' : '❌'}\n` +
-        `OpenRouter Gemma 31B: ${settings.enabledModels['gemma-large'] ? '✅' : '❌'}\n` +
-        `OpenRouter Free: ${settings.enabledModels['or-free'] ? '✅' : '❌'}\n` +
+        `OpenRouter Cohere: ${settings.enabledModels.cohere !== false ? '✅' : '❌'}\n` +
+        `OpenRouter Gemma 26B: ${settings.enabledModels.gemma !== false ? '✅' : '❌'}\n` +
+        `OpenRouter Gemma 31B: ${settings.enabledModels['gemma-large'] !== false ? '✅' : '❌'}\n` +
+        `OpenRouter Free: ${settings.enabledModels['or-free'] !== false ? '✅' : '❌'}\n` +
         `Nvidia Nemotron: ${settings.enabledModels.nvidia ? '✅' : '❌'}\n` +
-        `Nvidia Llama: ${settings.enabledModels.llama ? '✅' : '❌'}\n` +
+        `Nvidia Llama: ${settings.enabledModels.llama !== false ? '✅' : '❌'}\n` +
+        `Nvidia Inkling: ${settings.enabledModels.inkling !== false ? '✅' : '❌'}\n` +
+        `Nvidia DeepSeek Flash: ${settings.enabledModels['deepseek-flash'] !== false ? '✅' : '❌'}\n` +
         `Max History: *${settings.maxConversationHistory}* messages\n\n` +
         `Dashboard: ${process.env.APP_URL || 'http://localhost:3000'}/dashboard`,
       { parse_mode: 'Markdown' }
@@ -624,7 +656,6 @@ function createBot() {
     }
 
     const modelNames = {
-      gemini: '🌐 Gemini 2.0 Flash (Google)',
       openrouter: '🔗 GPT-OSS 20B (OpenRouter)',
       cohere: '🔗 Cohere North Mini (OpenRouter)',
       gemma: '🔷 Gemma 4 26B (OpenRouter)',
@@ -632,6 +663,8 @@ function createBot() {
       'or-free': '🆓 OpenRouter Free Pool (OpenRouter)',
       nvidia: '🚀 Mistral Nemotron (Nvidia NIM)',
       llama: '🦙 Llama 3.1 8B (Nvidia NIM)',
+      inkling: '🔤 Inkling (Nvidia NIM)',
+      'deepseek-flash': '⚡ DeepSeek V4 Flash (Nvidia NIM)',
     };
 
     return ctx.reply(`✅ Model changed to *${modelNames[model] || model}*`, {

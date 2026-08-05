@@ -1,7 +1,9 @@
 const DEFAULT_NVIDIA_MODEL = 'mistralai/mistral-nemotron';
 const NVIDIA_MODELS = {
-  'mistralai/mistral-nemotron': { display: 'Mistral Nemotron', speed: 'fast' },
-  'meta/llama-3.1-8b-instruct': { display: 'Llama 3.1 8B', speed: 'medium' },
+  'mistralai/mistral-nemotron': { display: 'Mistral Nemotron', speed: 'fast', maxTokens: 4096 },
+  'meta/llama-3.1-8b-instruct': { display: 'Llama 3.1 8B', speed: 'medium', maxTokens: 4096 },
+  'thinkingmachines/inkling': { display: 'ThinkingMachines Inkling', speed: 'fast', maxTokens: 16384 },
+  'deepseek-ai/deepseek-v4-flash': { display: 'DeepSeek V4 Flash', speed: 'slow', maxTokens: 16384 },
 };
 
 async function queryNvidiaNim(prompt, conversationHistory, apiKey, modelName) {
@@ -10,6 +12,8 @@ async function queryNvidiaNim(prompt, conversationHistory, apiKey, modelName) {
   }
 
   const model = modelName && NVIDIA_MODELS[modelName] ? modelName : DEFAULT_NVIDIA_MODEL;
+  const maxTokens = NVIDIA_MODELS[model]?.maxTokens || 4096;
+  const timeoutMs = NVIDIA_MODELS[model]?.speed === 'slow' ? 90000 : 60000;
 
   try {
     const messages = [
@@ -36,7 +40,7 @@ async function queryNvidiaNim(prompt, conversationHistory, apiKey, modelName) {
     });
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     const response = await fetch(
       'https://integrate.api.nvidia.com/v1/chat/completions',
@@ -51,7 +55,7 @@ async function queryNvidiaNim(prompt, conversationHistory, apiKey, modelName) {
           messages: messages,
           temperature: 1,
           top_p: 0.95,
-          max_tokens: 16384
+          max_tokens: maxTokens
         }),
         signal: controller.signal
       }
@@ -73,8 +77,8 @@ async function queryNvidiaNim(prompt, conversationHistory, apiKey, modelName) {
     return 'Sorry, I could not generate a response. The model may have been blocked or unavailable.';
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.error('Nvidia NIM API Error: request timed out after 60s');
-      return '⚠️ The model is taking too long to respond. Please try again later or use a different model.';
+      console.error(`Nvidia NIM API Error: ${model} timed out after ${timeoutMs / 1000}s`);
+      return `⚠️ ${NVIDIA_MODELS[model]?.display || model} is taking too long (timeout ${timeoutMs / 1000}s). Please try a different model.`;
     }
     if (error.message.includes('ECONNRESET')) {
       console.error('Nvidia NIM API Error: connection reset by server');

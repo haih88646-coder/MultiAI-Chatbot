@@ -458,16 +458,17 @@ This happens when the project is in a subdirectory (e.g., `telegram-chatbot/`) b
 
 ### AI Models
 
-| Model Key | Provider | Model Name | Notes |
-|---|---|---|---|
-| `gemini` | Google | Gemini 2.0 Flash | Rate-limited on free tier |
-| `openrouter` | OpenRouter | GPT-OSS 20B (free) | Fast (~3.5s) — recommended default |
-| `cohere` | OpenRouter | Cohere North Mini (free) | Fast (~3.1s) |
-| `gemma` | OpenRouter | Gemma 4 26B (free) | Needs privacy terms at openrouter.ai/settings/privacy |
-| `gemma-large` | OpenRouter | Gemma 4 31B (free) | Needs privacy terms at openrouter.ai/settings/privacy |
-| `or-free` | OpenRouter | OpenRouter Free Pool | Auto-routes to best free model (~2s) |
-| `nvidia` | NVIDIA NIM | Mistral Nemotron | Fast (~1-5s) |
-| `llama` | NVIDIA NIM | Llama 3.1 8B | Medium (~7s) |
+| Model Key | Provider | Model Name | Speed | Notes |
+|---|---|---|---|---|
+| `openrouter` | OpenRouter | GPT-OSS 20B (free) | ~3.5s | Recommended default |
+| `cohere` | OpenRouter | Cohere North Mini (free) | ~3.1s | Fast code-focused model |
+| `gemma` | OpenRouter | Gemma 4 26B (free) | ~2s | Needs privacy terms at openrouter.ai/settings/privacy |
+| `gemma-large` | OpenRouter | Gemma 4 31B (free) | ~2s | Needs privacy terms at openrouter.ai/settings/privacy |
+| `or-free` | OpenRouter | OpenRouter Free Pool | ~2s | Auto-routes to best free model |
+| `nvidia` | NVIDIA NIM | Mistral Nemotron | ~1-5s | Fast general-purpose |
+| `llama` | NVIDIA NIM | Llama 3.1 8B | ~7s | Medium speed |
+| `inkling` | NVIDIA NIM | ThinkingMachines Inkling | ~4s | Fast reasoning model |
+| `deepseek-flash` | NVIDIA NIM | DeepSeek V4 Flash | ~27s | Slow — reasoning model |
 
 > **Tip:** If models seem slow or error out, test your API keys locally with `node test-modules.js` before deploying.
 

@@ -1,5 +1,4 @@
 require('dotenv').config();
-const { queryGemini } = require('./src/ai/gemini');
 const { queryOpenRouter } = require('./src/ai/openrouter');
 const { queryNvidiaNim } = require('./src/ai/nvidia');
 
@@ -9,14 +8,7 @@ async function testAll() {
 
   console.log('🧪 Testing AI API keys...\n');
 
-  console.log('--- Gemini ---');
-  console.log('Key:', process.env.GEMINI_API_KEY ? '✅ Set' : '❌ Missing');
-  if (process.env.GEMINI_API_KEY) {
-    const result = await queryGemini(prompt, history, process.env.GEMINI_API_KEY);
-    console.log('Result:', result.substring(0, 200));
-  }
-
-  console.log('\n--- OpenRouter Models ---');
+  console.log('--- OpenRouter ---');
   console.log('Key:', process.env.OPENROUTER_API_KEY ? '✅ Set' : '❌ Missing');
 
   const openrouterModels = [
@@ -34,12 +26,13 @@ async function testAll() {
     }
   }
 
-  console.log('\n--- NVIDIA NIM Models ---');
+  console.log('\n--- NVIDIA NIM ---');
   console.log('Key:', process.env.NVIDIA_NIM_API_KEY ? '✅ Set' : '❌ Missing');
 
   const nvidiaModels = [
     ['mistralai/mistral-nemotron', 'Mistral Nemotron'],
     ['meta/llama-3.1-8b-instruct', 'Llama 3.1 8B'],
+    ['thinkingmachines/inkling', 'Inkling'],
   ];
 
   for (const [model, name] of nvidiaModels) {
@@ -47,6 +40,12 @@ async function testAll() {
       const result = await queryNvidiaNim(prompt, history, process.env.NVIDIA_NIM_API_KEY, model);
       console.log(name + ':', result.substring(0, 200));
     }
+  }
+
+  console.log('\n--- NVIDIA NIM (DeepSeek V4 Flash — slow) ---');
+  if (process.env.NVIDIA_NIM_API_KEY) {
+    const result = await queryNvidiaNim(prompt, history, process.env.NVIDIA_NIM_API_KEY, 'deepseek-ai/deepseek-v4-flash');
+    console.log('DeepSeek V4 Flash:', result.substring(0, 200));
   }
 
   console.log('\n✅ Test complete.');
