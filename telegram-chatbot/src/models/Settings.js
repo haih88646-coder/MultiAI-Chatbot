@@ -5,12 +5,11 @@ const settingsSchema = new mongoose.Schema({
     gemini: { type: Boolean, default: true },
     openrouter: { type: Boolean, default: true },
     nvidia: { type: Boolean, default: true },
-    'nvidia-flash': { type: Boolean, default: true },
   },
   defaultModel: {
     type: String,
-    enum: ['gemini', 'openrouter', 'nvidia', 'nvidia-flash'],
-    default: 'gemini',
+    enum: ['gemini', 'openrouter', 'nvidia'],
+    default: 'openrouter',
   },
   maxConversationHistory: {
     type: Number,

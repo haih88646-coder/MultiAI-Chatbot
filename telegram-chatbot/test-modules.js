@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { queryGemini } = require('./src/ai/gemini');
 const { queryOpenRouter } = require('./src/ai/openrouter');
-const { queryNvidiaNim, queryNvidiaNimFlash } = require('./src/ai/nvidia');
+const { queryNvidiaNim } = require('./src/ai/nvidia');
 
 async function testAll() {
   const prompt = 'Hello, what is 2+2?';
@@ -23,16 +23,10 @@ async function testAll() {
     console.log('Result:', result.substring(0, 200) + (result.length > 200 ? '...' : ''));
   }
 
-  console.log('\n--- NVIDIA NIM (DeepSeek V4 Pro) ---');
+  console.log('\n--- NVIDIA NIM (Mistral Nemotron) ---');
   console.log('Key:', process.env.NVIDIA_NIM_API_KEY ? '✅ Set' : '❌ Missing');
   if (process.env.NVIDIA_NIM_API_KEY) {
     const result = await queryNvidiaNim(prompt, history, process.env.NVIDIA_NIM_API_KEY);
-    console.log('Result:', result.substring(0, 200) + (result.length > 200 ? '...' : ''));
-  }
-
-  console.log('\n--- NVIDIA NIM (DeepSeek V4 Flash) ---');
-  if (process.env.NVIDIA_NIM_API_KEY) {
-    const result = await queryNvidiaNimFlash(prompt, history, process.env.NVIDIA_NIM_API_KEY);
     console.log('Result:', result.substring(0, 200) + (result.length > 200 ? '...' : ''));
   }
 

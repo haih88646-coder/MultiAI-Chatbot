@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema({
   },
   selectedModel: {
     type: String,
-    enum: ['gemini', 'openrouter', 'nvidia', 'nvidia-flash', 'default'],
+    enum: ['gemini', 'openrouter', 'nvidia', 'default'],
     default: 'default',
   },
   requestStatus: {

@@ -39,8 +39,8 @@ function createBot() {
         settings = new Settings();
         await settings.save();
       }
-      if (settings.enabledModels && settings.enabledModels['nvidia-flash'] === undefined) {
-        settings.enabledModels['nvidia-flash'] = true;
+    if (settings && settings.enabledModels && settings.enabledModels['nvidia-flash'] !== undefined) {
+        delete settings.enabledModels['nvidia-flash'];
         await settings.save();
       }
       return settings;
@@ -67,7 +67,7 @@ function createBot() {
       return user;
     } catch (e) {
       console.error('getOrCreateUser error:', e.message);
-      return { telegramId, isApproved: true, isOwner: true, selectedModel: 'gemini', requestStatus: 'approved' };
+      return { telegramId, isApproved: true, isOwner: true, selectedModel: 'openrouter', requestStatus: 'approved' };
     }
   }
 
@@ -200,11 +200,10 @@ function createBot() {
       ? (settings?.defaultModel || 'gemini')
       : user.selectedModel;
 
-    const modelDisplayNames = {
+       modelDisplayNames = {
       gemini: '🌐 Gemini 2.0 Flash (Google)',
-      openrouter: '🔗 OpenRouter (Gemini 2.5)',
-      nvidia: '🚀 DeepSeek V4 Pro (Nvidia NIM)',
-      'nvidia-flash': '⚡ DeepSeek V4 Flash (Nvidia NIM)',
+      openrouter: '🔗 GPT-OSS 20B (OpenRouter)',
+      nvidia: '🚀 Mistral Nemotron (Nvidia NIM)',
     };
 
     const currentModelLabel = modelDisplayNames[currentModel] || currentModel;
@@ -252,11 +251,11 @@ function createBot() {
   bot.action('choose_provider_openrouter', async (ctx) => {
     await ctx.answerCbQuery();
     const buttons = [
-      [Markup.button.callback('🔗 OpenRouter (Gemini 2.5)', 'model_openrouter')],
+      [Markup.button.callback('🔗 GPT-OSS 20B', 'model_openrouter')],
       [Markup.button.callback('🔙 Back', 'show_providers')],
     ];
     return ctx.editMessageText(
-      `🔗 *OpenRouter*\n\nAvailable models:\n• Gemini 2.5 Flash\n\nSelect a model:`,
+      `🔗 *OpenRouter*\n\nAvailable models:\n• GPT-OSS 20B (free)\n\nSelect a model:`,
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard(buttons),
@@ -268,14 +267,11 @@ function createBot() {
     await ctx.answerCbQuery();
     const settings = await Settings.findOne().catch(() => null);
     const buttons = [
-      [Markup.button.callback('🚀 DeepSeek V4 Pro', 'model_nvidia')],
+      [Markup.button.callback('🚀 Mistral Nemotron', 'model_nvidia')],
     ];
-    if (settings?.enabledModels?.['nvidia-flash'] !== false) {
-      buttons.splice(1, 0, [Markup.button.callback('⚡ DeepSeek V4 Flash', 'model_nvidia-flash')]);
-    }
     buttons.push([Markup.button.callback('🔙 Back', 'show_providers')]);
     return ctx.editMessageText(
-      `🚀 *Nvidia NIM*\n\nAvailable models:\n• DeepSeek V4 Pro (no thinking)\n• DeepSeek V4 Flash (with reasoning)\n\nSelect a model:`,
+      `🚀 *Nvidia NIM*\n\nAvailable models:\n• Mistral Nemotron\n\nSelect a model:`,
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard(buttons),
@@ -292,11 +288,10 @@ function createBot() {
       ? (settings?.defaultModel || 'gemini')
       : user.selectedModel;
 
-    const modelDisplayNames = {
+       modelDisplayNames = {
       gemini: '🌐 Gemini 2.0 Flash (Google)',
-      openrouter: '🔗 OpenRouter (Gemini 2.5)',
-      nvidia: '🚀 DeepSeek V4 Pro (Nvidia NIM)',
-      'nvidia-flash': '⚡ DeepSeek V4 Flash (Nvidia NIM)',
+      openrouter: '🔗 GPT-OSS 20B (OpenRouter)',
+      nvidia: '🚀 Mistral Nemotron (Nvidia NIM)',
     };
 
     const currentModelLabel = modelDisplayNames[currentModel] || currentModel;
@@ -571,9 +566,8 @@ function createBot() {
 
     const modelNames = {
       gemini: '🌐 Gemini 2.0 Flash (Google)',
-      openrouter: '🔗 OpenRouter (Gemini 2.5)',
-      nvidia: '🚀 DeepSeek V4 Pro (Nvidia NIM)',
-      'nvidia-flash': '⚡ DeepSeek V4 Flash (Nvidia NIM)',
+      openrouter: '🔗 GPT-OSS 20B (OpenRouter)',
+      nvidia: '🚀 Mistral Nemotron (Nvidia NIM)',
     };
 
     return ctx.reply(`✅ Model changed to *${modelNames[model] || model}*`, {
