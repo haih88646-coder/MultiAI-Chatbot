@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "src/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "src/index.js"
+    },
+    {
+      "src": "/dashboard",
+      "dest": "src/index.js"
+    },
+    {
+      "src": "/login",
+      "dest": "src/index.js"
+    },
+    {
+      "src": "/health",
+      "dest": "src/index.js"
+    },
+    {
+      "src": "/css/(.*)",
+      "dest": "public/css/$1"
+    },
+    {
+      "src": "/js/(.*)",
+      "dest": "public/js/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "src/index.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
