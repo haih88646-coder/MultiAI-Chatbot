@@ -190,29 +190,37 @@ function createBot() {
       return ctx.reply('❌ You need to be approved first. Use /request to request access.');
     }
 
-    const settings = await Settings.findOne();
+    const settings = await Settings.findOne().catch(e => { console.error('Settings lookup error:', e.message); return null; });
     const buttons = [];
 
     if (settings?.enabledModels?.gemini !== false) {
-      buttons.push([Markup.button.callback('🌐 Gemini (Google)', 'model_gemini')]);
+      buttons.push([Markup.button.callback('🌐 Gemini 2.0 Flash (Google)', 'model_gemini')]);
     }
     if (settings?.enabledModels?.openrouter !== false) {
-      buttons.push([Markup.button.callback('🔗 OpenRouter', 'model_openrouter')]);
+      buttons.push([Markup.button.callback('🔗 OpenRouter (Gemini 2.0)', 'model_openrouter')]);
     }
     if (settings?.enabledModels?.nvidia !== false) {
-      buttons.push([Markup.button.callback('🚀 Nvidia NIM', 'model_nvidia')]);
+      buttons.push([Markup.button.callback('🚀 Nvidia NIM (Llama 3.1)', 'model_nvidia')]);
     }
 
     if (buttons.length === 0) {
       return ctx.reply('⚠️ No AI models are currently available. Please contact the owner.');
     }
 
+    const modelDisplayNames = {
+      gemini: '🌐 Gemini 2.0 Flash (Google)',
+      openrouter: '🔗 OpenRouter (Gemini 2.0)',
+      nvidia: '🚀 Nvidia NIM (Llama 3.1)',
+    };
+
     const currentModel = user.selectedModel === 'default'
       ? (settings?.defaultModel || 'gemini')
       : user.selectedModel;
 
+    const currentModelLabel = modelDisplayNames[currentModel] || currentModel;
+
     return ctx.reply(
-      `🤖 *Choose AI Model*\n\nCurrent model: *${currentModel}*\n\nSelect a model to use:`,
+      `🤖 *Choose AI Model*\n\nCurrent: *${currentModelLabel}*\n\nSelect a model to use:`,
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard(buttons),
@@ -469,9 +477,9 @@ function createBot() {
     }
 
     const modelNames = {
-      gemini: '🌐 Gemini (Google)',
-      openrouter: '🔗 OpenRouter',
-      nvidia: '⚡ Nvidia NIM',
+      gemini: '🌐 Gemini 2.0 Flash (Google)',
+      openrouter: '🔗 OpenRouter (Gemini 2.0)',
+      nvidia: '🚀 Nvidia NIM (Llama 3.1)',
     };
 
     return ctx.reply(`✅ Model changed to *${modelNames[model] || model}*`, {
