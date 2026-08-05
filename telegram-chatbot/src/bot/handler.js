@@ -202,7 +202,7 @@ function createBot() {
 
     const modelDisplayNames = {
       gemini: '🌐 Gemini 2.0 Flash (Google)',
-      openrouter: '🔗 OpenRouter (Gemini 2.0)',
+      openrouter: '🔗 OpenRouter (Gemini 2.5)',
       nvidia: '🚀 DeepSeek V4 Pro (Nvidia NIM)',
       'nvidia-flash': '⚡ DeepSeek V4 Flash (Nvidia NIM)',
     };
@@ -252,11 +252,11 @@ function createBot() {
   bot.action('choose_provider_openrouter', async (ctx) => {
     await ctx.answerCbQuery();
     const buttons = [
-      [Markup.button.callback('🔗 OpenRouter (Gemini 2.0)', 'model_openrouter')],
+      [Markup.button.callback('🔗 OpenRouter (Gemini 2.5)', 'model_openrouter')],
       [Markup.button.callback('🔙 Back', 'show_providers')],
     ];
     return ctx.editMessageText(
-      `🔗 *OpenRouter*\n\nAvailable models:\n• Gemini 2.0 Flash (001)\n\nSelect a model:`,
+      `🔗 *OpenRouter*\n\nAvailable models:\n• Gemini 2.5 Flash\n\nSelect a model:`,
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard(buttons),
@@ -294,7 +294,7 @@ function createBot() {
 
     const modelDisplayNames = {
       gemini: '🌐 Gemini 2.0 Flash (Google)',
-      openrouter: '🔗 OpenRouter (Gemini 2.0)',
+      openrouter: '🔗 OpenRouter (Gemini 2.5)',
       nvidia: '🚀 DeepSeek V4 Pro (Nvidia NIM)',
       'nvidia-flash': '⚡ DeepSeek V4 Flash (Nvidia NIM)',
     };
@@ -571,7 +571,7 @@ function createBot() {
 
     const modelNames = {
       gemini: '🌐 Gemini 2.0 Flash (Google)',
-      openrouter: '🔗 OpenRouter (Gemini 2.0)',
+      openrouter: '🔗 OpenRouter (Gemini 2.5)',
       nvidia: '🚀 DeepSeek V4 Pro (Nvidia NIM)',
       'nvidia-flash': '⚡ DeepSeek V4 Flash (Nvidia NIM)',
     };

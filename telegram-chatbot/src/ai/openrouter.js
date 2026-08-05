@@ -39,7 +39,7 @@ async function queryOpenRouter(prompt, conversationHistory, apiKey) {
         'X-Title': 'Telegram AI Chatbot'
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-001',
+          model: 'google/gemini-2.5-flash',
         messages: messages,
         temperature: 0.7,
         max_tokens: 2048
