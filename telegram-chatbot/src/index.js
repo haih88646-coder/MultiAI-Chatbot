@@ -19,7 +19,7 @@ app.use(cors({
 }));
 
 // Session configuration
-app.use(session({
+const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'telegram-chatbot-secret',
   resave: false,
   saveUninitialized: false,
@@ -28,7 +28,23 @@ app.use(session({
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   },
-}));
+};
+
+// Use MongoDB session store in production for persistence
+if (process.env.MONGODB_URI && process.env.MONGODB_URI !== 'mongodb://localhost:27017/telegram-chatbot') {
+  try {
+    const MongoStore = require('connect-mongo');
+    sessionConfig.store = MongoStore.create({
+      mongoUrl: process.env.MONGODB_URI,
+      ttl: 24 * 60 * 60,
+    });
+    console.log('✅ MongoDB session store configured');
+  } catch (e) {
+    console.log('⚠️ MongoDB session store unavailable, using memory store');
+  }
+}
+
+app.use(session(sessionConfig));
 
 // Static files
 app.use(express.static(path.join(__dirname, '..', 'public')));
