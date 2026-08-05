@@ -42,25 +42,17 @@ async function queryNvidiaNim(prompt, conversationHistory, apiKey) {
           messages: messages,
           temperature: 1,
           top_p: 0.95,
-          max_tokens: 16384,
-          extra_body: {
-            chat_template_kwargs: {
-              thinking: false
-            }
-          }
-        })
+          max_tokens: 16384
+        }),
+        timeout: 30000
       }
     );
 
     const data = await response.json();
 
     if (!response.ok) {
-      const msg = data.detail || data.error?.message || data.error || `HTTP ${response.status}`;
+      const msg = data.detail || data.error?.message || data.error || data.message || `HTTP ${response.status}`;
       throw new Error(`NVIDIA NIM API error: ${msg}`);
-    }
-
-    if (data.error) {
-      throw new Error(data.error.message || 'Nvidia NIM API error');
     }
 
     if (data.choices && data.choices[0] && data.choices[0].message) {
@@ -116,26 +108,17 @@ async function queryNvidiaNimFlash(prompt, conversationHistory, apiKey) {
           messages: messages,
           temperature: 1,
           top_p: 0.95,
-          max_tokens: 16384,
-          extra_body: {
-            chat_template_kwargs: {
-              thinking: true,
-              reasoning_effort: 'high'
-            }
-          }
-        })
+          max_tokens: 16384
+        }),
+        timeout: 60000
       }
     );
 
     const data = await response.json();
 
     if (!response.ok) {
-      const msg = data.detail || data.error?.message || data.error || `HTTP ${response.status}`;
+      const msg = data.detail || data.error?.message || data.error || data.message || `HTTP ${response.status}`;
       throw new Error(`NVIDIA NIM API error: ${msg}`);
-    }
-
-    if (data.error) {
-      throw new Error(data.error.message || 'Nvidia NIM API error');
     }
 
     if (data.choices && data.choices[0] && data.choices[0].message) {

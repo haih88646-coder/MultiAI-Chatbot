@@ -57,7 +57,8 @@ async function queryGemini(prompt, conversationHistory, apiKey) {
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
+        timeout: 30000
       }
     );
 
