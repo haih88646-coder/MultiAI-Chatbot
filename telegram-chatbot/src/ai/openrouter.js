@@ -65,7 +65,10 @@ async function queryOpenRouter(prompt, conversationHistory, apiKey, modelName) {
 
     if (!response.ok || data.error) {
       const msg = data.error?.message || data.error || `HTTP ${response.status}`;
-      throw new Error(`OpenRouter API error: ${msg}`);
+      if (msg.includes('guardrail restrictions') || msg.includes('privacy')) {
+        throw new Error(`OpenRouter API error: Privacy settings required. Visit https://openrouter.ai/settings/privacy to configure. Model: ${model}`);
+      }
+      throw new Error(`OpenRouter API error: ${msg} (Model: ${model})`);
     }
 
     if (data.choices && data.choices[0] && data.choices[0].message) {

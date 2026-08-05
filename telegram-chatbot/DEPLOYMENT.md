@@ -462,8 +462,8 @@ This happens when the project is in a subdirectory (e.g., `telegram-chatbot/`) b
 |---|---|---|---|---|
 | `openrouter` | OpenRouter | GPT-OSS 20B (free) | ~3.5s | Recommended default |
 | `cohere` | OpenRouter | Cohere North Mini (free) | ~3.1s | Fast code-focused model |
-| `gemma` | OpenRouter | Gemma 4 26B (free) | ~2s | Needs privacy terms at openrouter.ai/settings/privacy |
-| `gemma-large` | OpenRouter | Gemma 4 31B (free) | ~2s | Needs privacy terms at openrouter.ai/settings/privacy |
+| `gemma` | OpenRouter | Gemma 4 26B (free) | ~2s | ⚠️ Requires privacy config: visit `openrouter.ai/settings/privacy` and enable "Allow content that may be used in AI training"
+| `gemma-large` | OpenRouter | Gemma 4 31B (free) | ~2s | ⚠️ Requires privacy config: visit `openrouter.ai/settings/privacy` and enable "Allow content that may be used in AI training"
 | `or-free` | OpenRouter | OpenRouter Free Pool | ~2s | Auto-routes to best free model |
 | `nvidia` | NVIDIA NIM | Mistral Nemotron | ~1-5s | Fast general-purpose |
 | `llama` | NVIDIA NIM | Llama 3.1 8B | ~7s | Medium speed |
