@@ -2,6 +2,8 @@
 
 A step-by-step guide for deploying the Telegram AI Chatbot with multi-model support (Gemini, OpenRouter, NVIDIA NIM), a MongoDB-backed admin dashboard, and Telegram webhook integration.
 
+> **Repo structure:** The project lives in the `telegram-chatbot/` subdirectory of the repository root. A `render.yaml` at the **repo root** uses `rootDir: telegram-chatbot` to tell Render where the Node.js app is located.
+
 ---
 
 ## Table of Contents
@@ -71,7 +73,7 @@ All deployment platforms require the following environment variables. None are h
 
 ### Option A: Render (Recommended — 1-Click)
 
-Render is the simplest deployment option. The project includes a pre-configured `render.yaml` for infrastructure-as-code deployment.
+Render is the simplest deployment option. The project includes a pre-configured `render.yaml` at the **repository root** with `rootDir: telegram-chatbot` pointing to the Node.js app in the subdirectory.
 
 #### Steps
 
@@ -91,12 +93,13 @@ Render is the simplest deployment option. The project includes a pre-configured 
 2. **Create a web service on Render**
 
    - Go to [https://dashboard.render.com](https://dashboard.render.com) and sign in.
-   - Click **New** → **Web Service**.
-   - Connect your Git repository.
-   - Select the branch (e.g., `main`).
-   - **Build Command:** `npm install`
-   - **Start Command:** `npm start`
-   - Set the **Environment** to `Node`.
+    - Click **New** → **Web Service**.
+    - Connect your Git repository.
+    - Select the branch (e.g., `main`).
+    - **Root Directory:** `telegram-chatbot` (important — the app is in this subdirectory)
+    - **Build Command:** `npm install`
+    - **Start Command:** `npm start`
+    - Set the **Environment** to `Node`.
 
 3. **Add environment variables**
 
@@ -443,7 +446,12 @@ After deploying, complete these steps:
 1. Serverless functions have a 10-second timeout on the free tier. If your DB queries are slow, consider using Render or a VPS.
 2. Cold starts add ~1-2 seconds of latency. This is acceptable for webhook-based bots.
 
-### Webhook not working on local development
+### Render build fails with "Could not read package.json"
+
+This happens when the project is in a subdirectory (e.g., `telegram-chatbot/`) but Render looks for `package.json` at the repo root.
+
+1. **Ensure `render.yaml` is at the repo root** (not inside the project subdirectory) and includes `rootDir: telegram-chatbot`.
+2. **Or in the Render dashboard**, set **Root Directory** to `telegram-chatbot` when creating the service.
 
 - In development (`NODE_ENV` not set to `production`), the bot uses **long polling** instead of webhooks. So local development works without a public URL.
 - To test webhooks locally, use [ngrok](https://ngrok.com): `ngrok http 3000`, then set `APP_URL=https://<your-ngrok-url>`.
