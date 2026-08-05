@@ -324,10 +324,10 @@ Run the application on your own server (e.g., DigitalOcean, AWS EC2, Linode, or 
    APP_URL=https://your-domain.com
    GEMINI_API_KEY=your_gemini_api_key
    OPENROUTER_API_KEY=your_openrouter_api_key
-   NVIDIA_NIM_API_KEY=your_nvidia_api_key
+    NVIDIA_NIM_API_KEY=your_nvidia_api_key
     DEFAULT_AI_MODEL=openrouter
-   NODE_ENV=production
-   PORT=3000
+    NODE_ENV=production
+    PORT=3000
    ```
 
 3. **Start the app**
@@ -456,9 +456,17 @@ This happens when the project is in a subdirectory (e.g., `telegram-chatbot/`) b
 - In development (`NODE_ENV` not set to `production`), the bot uses **long polling** instead of webhooks. So local development works without a public URL.
 - To test webhooks locally, use [ngrok](https://ngrok.com): `ngrok http 3000`, then set `APP_URL=https://<your-ngrok-url>`.
 
----
+### AI Models
 
-## Architecture Summary
+| Model Key | Provider | Model Name | Notes |
+|---|---|---|---|
+| `gemini` | Google | Gemini 2.0 Flash | Rate-limited on free tier |
+| `openrouter` | OpenRouter | GPT-OSS 20B (free) | Fast (~3.5s) — recommended default |
+| `cohere` | OpenRouter | Cohere North Mini Code (free) | Fast (~3.1s) |
+| `nvidia` | NVIDIA NIM | Mistral Nemotron | Fast (~1-5s) |
+| `llama` | NVIDIA NIM | Llama 3.1 8B | Medium (~7s) |
+
+> **Tip:** If models seem slow or error out, test your API keys locally with `node test-modules.js` before deploying.
 
 ```
 Client (Telegram) → Telegram API → Webhook (your deployed app) → AI Provider
