@@ -2,6 +2,9 @@ const DEFAULT_OPENROUTER_MODEL = 'openai/gpt-oss-20b:free';
 const OPENROUTER_MODELS = {
   'openai/gpt-oss-20b:free': { display: 'GPT-OSS 20B', speed: 'fast' },
   'cohere/north-mini-code:free': { display: 'Cohere North Mini', speed: 'fast' },
+  'google/gemma-4-26b-a4b-it:free': { display: 'Gemma 4 26B', speed: 'fast' },
+  'google/gemma-4-31b-it:free': { display: 'Gemma 4 31B', speed: 'medium' },
+  'openrouter/free': { display: 'OpenRouter Free Pool', speed: 'fast' },
 };
 
 async function queryOpenRouter(prompt, conversationHistory, apiKey, modelName) {

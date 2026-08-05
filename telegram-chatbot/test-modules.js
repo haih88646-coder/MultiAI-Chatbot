@@ -13,33 +13,40 @@ async function testAll() {
   console.log('Key:', process.env.GEMINI_API_KEY ? '✅ Set' : '❌ Missing');
   if (process.env.GEMINI_API_KEY) {
     const result = await queryGemini(prompt, history, process.env.GEMINI_API_KEY);
-    console.log('Result:', result.substring(0, 200) + (result.length > 200 ? '...' : ''));
+    console.log('Result:', result.substring(0, 200));
   }
 
-  console.log('\n--- OpenRouter: GPT-OSS 20B ---');
+  console.log('\n--- OpenRouter Models ---');
   console.log('Key:', process.env.OPENROUTER_API_KEY ? '✅ Set' : '❌ Missing');
-  if (process.env.OPENROUTER_API_KEY) {
-    const result = await queryOpenRouter(prompt, history, process.env.OPENROUTER_API_KEY, 'openai/gpt-oss-20b:free');
-    console.log('Result:', result.substring(0, 200) + (result.length > 200 ? '...' : ''));
+
+  const openrouterModels = [
+    ['openai/gpt-oss-20b:free', 'GPT-OSS 20B'],
+    ['cohere/north-mini-code:free', 'Cohere North Mini'],
+    ['google/gemma-4-26b-a4b-it:free', 'Gemma 4 26B'],
+    ['google/gemma-4-31b-it:free', 'Gemma 4 31B'],
+    ['openrouter/free', 'OpenRouter Free Pool'],
+  ];
+
+  for (const [model, name] of openrouterModels) {
+    if (process.env.OPENROUTER_API_KEY) {
+      const result = await queryOpenRouter(prompt, history, process.env.OPENROUTER_API_KEY, model);
+      console.log(name + ':', result.substring(0, 200));
+    }
   }
 
-  console.log('\n--- OpenRouter: Cohere North Mini ---');
-  if (process.env.OPENROUTER_API_KEY) {
-    const result = await queryOpenRouter(prompt, history, process.env.OPENROUTER_API_KEY, 'cohere/north-mini-code:free');
-    console.log('Result:', result.substring(0, 200) + (result.length > 200 ? '...' : ''));
-  }
-
-  console.log('\n--- NVIDIA NIM: Mistral Nemotron ---');
+  console.log('\n--- NVIDIA NIM Models ---');
   console.log('Key:', process.env.NVIDIA_NIM_API_KEY ? '✅ Set' : '❌ Missing');
-  if (process.env.NVIDIA_NIM_API_KEY) {
-    const result = await queryNvidiaNim(prompt, history, process.env.NVIDIA_NIM_API_KEY, 'mistralai/mistral-nemotron');
-    console.log('Result:', result.substring(0, 200) + (result.length > 200 ? '...' : ''));
-  }
 
-  console.log('\n--- NVIDIA NIM: Llama 3.1 8B ---');
-  if (process.env.NVIDIA_NIM_API_KEY) {
-    const result = await queryNvidiaNim(prompt, history, process.env.NVIDIA_NIM_API_KEY, 'meta/llama-3.1-8b-instruct');
-    console.log('Result:', result.substring(0, 200) + (result.length > 200 ? '...' : ''));
+  const nvidiaModels = [
+    ['mistralai/mistral-nemotron', 'Mistral Nemotron'],
+    ['meta/llama-3.1-8b-instruct', 'Llama 3.1 8B'],
+  ];
+
+  for (const [model, name] of nvidiaModels) {
+    if (process.env.NVIDIA_NIM_API_KEY) {
+      const result = await queryNvidiaNim(prompt, history, process.env.NVIDIA_NIM_API_KEY, model);
+      console.log(name + ':', result.substring(0, 200));
+    }
   }
 
   console.log('\n✅ Test complete.');

@@ -94,6 +94,30 @@ async function query(prompt, userId, modelPreference = 'default') {
           'cohere/north-mini-code:free'
         );
         break;
+      case 'gemma':
+        response = await queryOpenRouter(
+          prompt,
+          recentHistory,
+          process.env.OPENROUTER_API_KEY,
+          'google/gemma-4-26b-a4b-it:free'
+        );
+        break;
+      case 'gemma-large':
+        response = await queryOpenRouter(
+          prompt,
+          recentHistory,
+          process.env.OPENROUTER_API_KEY,
+          'google/gemma-4-31b-it:free'
+        );
+        break;
+      case 'or-free':
+        response = await queryOpenRouter(
+          prompt,
+          recentHistory,
+          process.env.OPENROUTER_API_KEY,
+          'openrouter/free'
+        );
+        break;
       case 'nvidia':
         response = await queryNvidiaNim(
           prompt,

@@ -53,6 +53,18 @@ function createBot() {
           settings.enabledModels['cohere'] = true;
           changed = true;
         }
+        if (settings.enabledModels['gemma'] === undefined) {
+          settings.enabledModels['gemma'] = true;
+          changed = true;
+        }
+        if (settings.enabledModels['gemma-large'] === undefined) {
+          settings.enabledModels['gemma-large'] = true;
+          changed = true;
+        }
+        if (settings.enabledModels['or-free'] === undefined) {
+          settings.enabledModels['or-free'] = true;
+          changed = true;
+        }
         if (settings.enabledModels['llama'] === undefined) {
           settings.enabledModels['llama'] = true;
           changed = true;
@@ -220,6 +232,9 @@ function createBot() {
       gemini: '🌐 Gemini 2.0 Flash (Google)',
       openrouter: '🔗 GPT-OSS 20B (OpenRouter)',
       cohere: '🔗 Cohere North Mini (OpenRouter)',
+      gemma: '🔷 Gemma 4 26B (OpenRouter)',
+      'gemma-large': '🔷 Gemma 4 31B (OpenRouter)',
+      'or-free': '🆓 OpenRouter Free Pool (OpenRouter)',
       nvidia: '🚀 Mistral Nemotron (Nvidia NIM)',
       llama: '🦙 Llama 3.1 8B (Nvidia NIM)',
     };
@@ -273,11 +288,20 @@ function createBot() {
       [Markup.button.callback('🔗 GPT-OSS 20B', 'model_openrouter')],
     ];
     if (settings?.enabledModels?.cohere !== false) {
-      buttons.splice(1, 0, [Markup.button.callback('🔗 Cohere North Mini', 'model_cohere')]);
+      buttons.push([Markup.button.callback('🔗 Cohere North Mini', 'model_cohere')]);
+    }
+    if (settings?.enabledModels?.gemma !== false) {
+      buttons.push([Markup.button.callback('🔷 Gemma 4 26B', 'model_gemma')]);
+    }
+    if (settings?.enabledModels?.['gemma-large'] !== false) {
+      buttons.push([Markup.button.callback('🔷 Gemma 4 31B', 'model_gemma-large')]);
+    }
+    if (settings?.enabledModels?.['or-free'] !== false) {
+      buttons.push([Markup.button.callback('🆓 OpenRouter Free', 'model_or-free')]);
     }
     buttons.push([Markup.button.callback('🔙 Back', 'show_providers')]);
     return ctx.editMessageText(
-      `🔗 *OpenRouter*\n\nAvailable models:\n• GPT-OSS 20B (free)\n• Cohere North Mini (free)\n\nSelect a model:`,
+      `🔗 *OpenRouter*\n\nAvailable models:\n• GPT-OSS 20B (free)\n• Cohere North Mini (free)\n• Gemma 4 26B (free, may need privacy settings)\n• Gemma 4 31B (free, may need privacy settings)\n• OpenRouter Free Pool (auto-routing)\n\nSelect a model:`,
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard(buttons),
@@ -317,6 +341,9 @@ function createBot() {
       gemini: '🌐 Gemini 2.0 Flash (Google)',
       openrouter: '🔗 GPT-OSS 20B (OpenRouter)',
       cohere: '🔗 Cohere North Mini (OpenRouter)',
+      gemma: '🔷 Gemma 4 26B (OpenRouter)',
+      'gemma-large': '🔷 Gemma 4 31B (OpenRouter)',
+      'or-free': '🆓 OpenRouter Free Pool (OpenRouter)',
       nvidia: '🚀 Mistral Nemotron (Nvidia NIM)',
       llama: '🦙 Llama 3.1 8B (Nvidia NIM)',
     };
@@ -417,10 +444,13 @@ function createBot() {
       '⚙️ *Current Settings*\n\n' +
         `Default Model: *${settings.defaultModel}*\n` +
         `Gemini: ${settings.enabledModels.gemini ? '✅' : '❌'}\n` +
-        `OpenRouter: ${settings.enabledModels.openrouter ? '✅' : '❌'}\n` +
-        `Cohere: ${settings.enabledModels.cohere !== false ? '✅' : '❌'}\n` +
-        `Nvidia NIM: ${settings.enabledModels.nvidia ? '✅' : '❌'}\n` +
-        `Llama: ${settings.enabledModels.llama !== false ? '✅' : '❌'}\n` +
+        `OpenRouter GPT-OSS: ${settings.enabledModels.openrouter ? '✅' : '❌'}\n` +
+        `OpenRouter Cohere: ${settings.enabledModels.cohere ? '✅' : '❌'}\n` +
+        `OpenRouter Gemma 26B: ${settings.enabledModels.gemma ? '✅' : '❌'}\n` +
+        `OpenRouter Gemma 31B: ${settings.enabledModels['gemma-large'] ? '✅' : '❌'}\n` +
+        `OpenRouter Free: ${settings.enabledModels['or-free'] ? '✅' : '❌'}\n` +
+        `Nvidia Nemotron: ${settings.enabledModels.nvidia ? '✅' : '❌'}\n` +
+        `Nvidia Llama: ${settings.enabledModels.llama ? '✅' : '❌'}\n` +
         `Max History: *${settings.maxConversationHistory}* messages\n\n` +
         `Dashboard: ${process.env.APP_URL || 'http://localhost:3000'}/dashboard`,
       { parse_mode: 'Markdown' }
@@ -597,6 +627,9 @@ function createBot() {
       gemini: '🌐 Gemini 2.0 Flash (Google)',
       openrouter: '🔗 GPT-OSS 20B (OpenRouter)',
       cohere: '🔗 Cohere North Mini (OpenRouter)',
+      gemma: '🔷 Gemma 4 26B (OpenRouter)',
+      'gemma-large': '🔷 Gemma 4 31B (OpenRouter)',
+      'or-free': '🆓 OpenRouter Free Pool (OpenRouter)',
       nvidia: '🚀 Mistral Nemotron (Nvidia NIM)',
       llama: '🦙 Llama 3.1 8B (Nvidia NIM)',
     };
