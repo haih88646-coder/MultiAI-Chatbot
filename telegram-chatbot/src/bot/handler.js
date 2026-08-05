@@ -191,24 +191,10 @@ function createBot() {
     }
 
     const settings = await Settings.findOne().catch(e => { console.error('Settings lookup error:', e.message); return null; });
-    const buttons = [];
 
-    if (settings?.enabledModels?.gemini !== false) {
-      buttons.push([Markup.button.callback('🌐 Gemini 2.0 Flash (Google)', 'model_gemini')]);
-    }
-    if (settings?.enabledModels?.openrouter !== false) {
-      buttons.push([Markup.button.callback('🔗 OpenRouter (Gemini 2.0)', 'model_openrouter')]);
-    }
-    if (settings?.enabledModels?.nvidia !== false) {
-      buttons.push([
-        Markup.button.callback('🚀 DeepSeek V4 Pro', 'model_nvidia'),
-        Markup.button.callback('⚡ DeepSeek V4 Flash', 'model_nvidia-flash'),
-      ]);
-    }
-
-    if (buttons.length === 0) {
-      return ctx.reply('⚠️ No AI models are currently available. Please contact the owner.');
-    }
+    const currentModel = user.selectedModel === 'default'
+      ? (settings?.defaultModel || 'gemini')
+      : user.selectedModel;
 
     const modelDisplayNames = {
       gemini: '🌐 Gemini 2.0 Flash (Google)',
@@ -217,14 +203,110 @@ function createBot() {
       'nvidia-flash': '⚡ DeepSeek V4 Flash (Nvidia NIM)',
     };
 
+    const currentModelLabel = modelDisplayNames[currentModel] || currentModel;
+
+    const buttons = [];
+    if (settings?.enabledModels?.gemini !== false) {
+      buttons.push([Markup.button.callback('🌐 Gemini', 'choose_provider_gemini')]);
+    }
+    if (settings?.enabledModels?.openrouter !== false) {
+      buttons.push([Markup.button.callback('🔗 OpenRouter', 'choose_provider_openrouter')]);
+    }
+    if (settings?.enabledModels?.nvidia !== false) {
+      buttons.push([Markup.button.callback('🚀 Nvidia NIM', 'choose_provider_nvidia')]);
+    }
+
+    if (buttons.length === 0) {
+      return ctx.reply('⚠️ No AI models are currently available. Please contact the owner.');
+    }
+
+    return ctx.reply(
+      `🤖 *Choose AI Provider*\n\nCurrent: *${currentModelLabel}*\n\nSelect a provider to see available models:`,
+      {
+        parse_mode: 'Markdown',
+        ...Markup.inlineKeyboard(buttons),
+      }
+    );
+  });
+
+  // Handle provider selection — show model variants
+  bot.action('choose_provider_gemini', async (ctx) => {
+    await ctx.answerCbQuery();
+    const buttons = [
+      [Markup.button.callback('🌐 Gemini 2.0 Flash', 'model_gemini')],
+      [Markup.button.callback('🔙 Back', 'show_providers')],
+    ];
+    return ctx.editMessageText(
+      `🌐 *Gemini (Google)*\n\nAvailable models:\n• Gemini 2.0 Flash\n\nSelect a model:`,
+      {
+        parse_mode: 'Markdown',
+        ...Markup.inlineKeyboard(buttons),
+      }
+    );
+  });
+
+  bot.action('choose_provider_openrouter', async (ctx) => {
+    await ctx.answerCbQuery();
+    const buttons = [
+      [Markup.button.callback('🔗 OpenRouter (Gemini 2.0)', 'model_openrouter')],
+      [Markup.button.callback('🔙 Back', 'show_providers')],
+    ];
+    return ctx.editMessageText(
+      `🔗 *OpenRouter*\n\nAvailable models:\n• Gemini 2.0 Flash (001)\n\nSelect a model:`,
+      {
+        parse_mode: 'Markdown',
+        ...Markup.inlineKeyboard(buttons),
+      }
+    );
+  });
+
+  bot.action('choose_provider_nvidia', async (ctx) => {
+    await ctx.answerCbQuery();
+    const buttons = [
+      [Markup.button.callback('🚀 DeepSeek V4 Pro', 'model_nvidia')],
+      [Markup.button.callback('⚡ DeepSeek V4 Flash', 'model_nvidia-flash')],
+      [Markup.button.callback('🔙 Back', 'show_providers')],
+    ];
+    return ctx.editMessageText(
+      `🚀 *Nvidia NIM*\n\nAvailable models:\n• DeepSeek V4 Pro (no thinking)\n• DeepSeek V4 Flash (with reasoning)\n\nSelect a model:`,
+      {
+        parse_mode: 'Markdown',
+        ...Markup.inlineKeyboard(buttons),
+      }
+    );
+  });
+
+  bot.action('show_providers', async (ctx) => {
+    await ctx.answerCbQuery();
+    const settings = await Settings.findOne().catch(() => null);
+    const user = await getOrCreateUser(ctx);
+
     const currentModel = user.selectedModel === 'default'
       ? (settings?.defaultModel || 'gemini')
       : user.selectedModel;
 
+    const modelDisplayNames = {
+      gemini: '🌐 Gemini 2.0 Flash (Google)',
+      openrouter: '🔗 OpenRouter (Gemini 2.0)',
+      nvidia: '🚀 DeepSeek V4 Pro (Nvidia NIM)',
+      'nvidia-flash': '⚡ DeepSeek V4 Flash (Nvidia NIM)',
+    };
+
     const currentModelLabel = modelDisplayNames[currentModel] || currentModel;
 
-    return ctx.reply(
-      `🤖 *Choose AI Model*\n\nCurrent: *${currentModelLabel}*\n\nSelect a model to use:`,
+    const buttons = [];
+    if (settings?.enabledModels?.gemini !== false) {
+      buttons.push([Markup.button.callback('🌐 Gemini', 'choose_provider_gemini')]);
+    }
+    if (settings?.enabledModels?.openrouter !== false) {
+      buttons.push([Markup.button.callback('🔗 OpenRouter', 'choose_provider_openrouter')]);
+    }
+    if (settings?.enabledModels?.nvidia !== false) {
+      buttons.push([Markup.button.callback('🚀 Nvidia NIM', 'choose_provider_nvidia')]);
+    }
+
+    return ctx.editMessageText(
+      `🤖 *Choose AI Provider*\n\nCurrent: *${currentModelLabel}*\n\nSelect a provider to see available models:`,
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard(buttons),
