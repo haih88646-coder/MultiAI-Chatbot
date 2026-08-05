@@ -151,7 +151,12 @@ function createBot() {
     }
 
     user.requestStatus = 'pending';
-    await user.save();
+    try {
+      await user.save();
+    } catch (e) {
+      console.error('Request save error:', e.message);
+      return ctx.reply('❌ Could not submit your request. Please try again.');
+    }
 
     // Notify owner
     const ownerMsg = await bot.telegram.sendMessage(
@@ -223,8 +228,13 @@ function createBot() {
       return ctx.reply('❌ You need to be approved first.');
     }
 
-    await clearHistory(user.telegramId);
-    return ctx.reply('🗑 Conversation history cleared!');
+    try {
+      await clearHistory(user.telegramId);
+      return ctx.reply('🗑 Conversation history cleared!');
+    } catch (e) {
+      console.error('Clear history error:', e.message);
+      return ctx.reply('⚠️ Could not clear history. Please try again.');
+    }
   });
 
   // Handle /help command
@@ -301,12 +311,17 @@ function createBot() {
       return ctx.reply('✅ You are already approved!');
     }
 
-    if (user.requestStatus === 'pending') {
+     if (user.requestStatus === 'pending') {
       return ctx.reply('⏳ Your request is already pending.');
     }
 
     user.requestStatus = 'pending';
-    await user.save();
+    try {
+      await user.save();
+    } catch (e) {
+      console.error('Request access save error:', e.message);
+      return ctx.reply('❌ Could not submit your request. Please try again.');
+    }
 
     // Notify owner
     await ctx.telegram.sendMessage(
@@ -338,7 +353,13 @@ function createBot() {
     }
 
     const userId = parseInt(ctx.match[1], 10);
-    const user = await User.findOne({ telegramId: userId });
+    let user;
+    try {
+      user = await User.findOne({ telegramId: userId });
+    } catch (e) {
+      console.error('User lookup error:', e.message);
+      return ctx.reply('❌ Could not find user. Please try again.');
+    }
 
     if (!user) {
       return ctx.reply('❌ User not found.');
@@ -346,10 +367,21 @@ function createBot() {
 
     user.isApproved = true;
     user.requestStatus = 'approved';
-    await user.save();
+    try {
+      await user.save();
+    } catch (e) {
+      console.error('User save error:', e.message);
+      return ctx.reply(`❌ Could not update user: ${e.message}`);
+    }
 
     // Notify the approved user
-    const settings = await Settings.findOne();
+    let settings;
+    try {
+      settings = await Settings.findOne();
+    } catch (e) {
+      console.error('Settings lookup error:', e.message);
+    }
+
     try {
       await ctx.telegram.sendMessage(
         userId,
@@ -371,7 +403,13 @@ function createBot() {
     }
 
     const userId = parseInt(ctx.match[1], 10);
-    const user = await User.findOne({ telegramId: userId });
+    let user;
+    try {
+      user = await User.findOne({ telegramId: userId });
+    } catch (e) {
+      console.error('User lookup error:', e.message);
+      return ctx.reply('❌ Could not find user. Please try again.');
+    }
 
     if (!user) {
       return ctx.reply('❌ User not found.');
@@ -379,7 +417,12 @@ function createBot() {
 
     user.isApproved = false;
     user.requestStatus = 'rejected';
-    await user.save();
+    try {
+      await user.save();
+    } catch (e) {
+      console.error('User save error:', e.message);
+      return ctx.reply(`❌ Could not update user: ${e.message}`);
+    }
 
     // Notify the user
     const settings = await ensureSettings();
@@ -406,14 +449,24 @@ function createBot() {
     }
 
     const model = ctx.match[1];
-    const settings = await Settings.findOne();
+    let settings;
+    try {
+      settings = await Settings.findOne();
+    } catch (e) {
+      console.error('Settings lookup error:', e.message);
+    }
 
     if (settings && settings.enabledModels && !settings.enabledModels[model]) {
       return ctx.reply(`⚠️ The ${model} model is currently disabled by the admin.`);
     }
 
     user.selectedModel = model;
-    await user.save();
+    try {
+      await user.save();
+    } catch (e) {
+      console.error('User model save error:', e.message);
+      return ctx.reply('⚠️ Could not save your model preference. Please try again.');
+    }
 
     const modelNames = {
       gemini: '🌐 Gemini (Google)',
