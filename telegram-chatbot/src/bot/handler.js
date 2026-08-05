@@ -111,7 +111,7 @@ function createBot() {
       return user;
     } catch (e) {
       console.error('getOrCreateUser error:', e.message);
-      return { telegramId, isApproved: true, isOwner: true, selectedModel: 'openrouter', requestStatus: 'approved' };
+      return { telegramId, isApproved: false, isOwner: false, selectedModel: 'openrouter', requestStatus: 'none' };
     }
   }
 

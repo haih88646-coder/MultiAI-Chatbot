@@ -82,14 +82,24 @@ app.get('/', (req, res) => {
 
 // MongoDB Connection
 async function connectDB() {
+  if (!process.env.MONGODB_URI) {
+    console.error('❌ MONGODB_URI is not set. Bot will run without database — users will not be able to request access.');
+    console.log('⚠️ Running without database - some features may not work');
+    return false;
+  }
   try {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('✅ MongoDB connected successfully');
+    return true;
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
     console.log('⚠️ Running without database - some features may not work');
+    return false;
   }
 }
+
+// Track if MongoDB is connected
+let dbConnected = false;
 
 // Initialize Telegram Bot
 let bot = null;
@@ -98,6 +108,10 @@ async function initBot() {
   if (!process.env.BOT_TOKEN || process.env.BOT_TOKEN === 'your_telegram_bot_token_here') {
     console.log('⚠️ BOT_TOKEN not configured. Bot will not start.');
     return;
+  }
+
+  if (!dbConnected) {
+    console.log('⚠️ BOT_TOKEN is set but MongoDB is not connected. Bot will start but users cannot request access.');
   }
 
   try {
@@ -127,7 +141,7 @@ async function initBot() {
 
 // Start server
 async function start() {
-  await connectDB();
+  dbConnected = await connectDB();
   await initBot();
 
   app.listen(PORT, () => {
