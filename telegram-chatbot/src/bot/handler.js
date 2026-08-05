@@ -214,6 +214,9 @@ function createBot() {
     }
 
     user.requestStatus = 'pending';
+    if (typeof user.save !== 'function') {
+      return ctx.reply('⚠️ Database not connected. Please contact the bot owner to set the MONGODB_URI environment variable on Render.');
+    }
     try {
       await user.save();
     } catch (e) {
@@ -648,6 +651,9 @@ function createBot() {
     }
 
     user.selectedModel = model;
+    if (typeof user.save !== 'function') {
+      return ctx.reply('⚠️ Database not connected. Model preference not saved.');
+    }
     try {
       await user.save();
     } catch (e) {
