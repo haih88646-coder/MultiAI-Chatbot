@@ -43,6 +43,10 @@ function createBot() {
         delete settings.enabledModels['nvidia-flash'];
         await settings.save();
       }
+      if (settings && settings.defaultModel === 'nvidia-flash') {
+        settings.defaultModel = 'openrouter';
+        await settings.save();
+      }
       return settings;
     } catch (e) {
       console.error('ensureSettings error:', e.message);
