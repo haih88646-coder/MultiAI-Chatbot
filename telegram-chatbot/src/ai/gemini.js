@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 async function queryGemini(prompt, conversationHistory, apiKey) {
   if (!apiKey) {
     return '⚠️ Gemini API key is not configured. Please contact the bot owner.';
@@ -52,15 +50,20 @@ async function queryGemini(prompt, conversationHistory, apiKey) {
       ]
     };
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
-        timeout: 30000
+        signal: controller.signal
       }
     );
+
+    clearTimeout(timeoutId);
 
     const data = await response.json();
 
@@ -80,6 +83,10 @@ async function queryGemini(prompt, conversationHistory, apiKey) {
 
     return 'Sorry, I could not generate a response. The model may have blocked the request due to safety filters.';
   } catch (error) {
+    if (error.name === 'AbortError') {
+      console.error('Gemini API Error: request timed out after 30s');
+      return '⚠️ The Gemini API is taking too long to respond. Please try again later.';
+    }
     console.error('Gemini API Error:', error.message);
     return `Error: ${error.message}`;
   }

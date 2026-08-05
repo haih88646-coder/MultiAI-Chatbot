@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 async function queryNvidiaNim(prompt, conversationHistory, apiKey) {
   if (!apiKey) {
     return '⚠️ NVIDIA NIM API key is not configured. Please contact the bot owner.';
@@ -29,6 +27,9 @@ async function queryNvidiaNim(prompt, conversationHistory, apiKey) {
       content: prompt
     });
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000);
+
     const response = await fetch(
       'https://integrate.api.nvidia.com/v1/chat/completions',
       {
@@ -44,9 +45,11 @@ async function queryNvidiaNim(prompt, conversationHistory, apiKey) {
           top_p: 0.95,
           max_tokens: 16384
         }),
-        timeout: 30000
+        signal: controller.signal
       }
     );
+
+    clearTimeout(timeoutId);
 
     const data = await response.json();
 
@@ -61,6 +64,14 @@ async function queryNvidiaNim(prompt, conversationHistory, apiKey) {
 
     return 'Sorry, I could not generate a response. The model may have been blocked or unavailable.';
   } catch (error) {
+    if (error.name === 'AbortError') {
+      console.error('Nvidia NIM API Error: request timed out after 120s');
+      return '⚠️ The model is taking too long to respond. Please try again later or use a different model.';
+    }
+    if (error.message.includes('ECONNRESET')) {
+      console.error('Nvidia NIM API Error: connection reset by server');
+      return '⚠️ Connection was reset by the NVIDIA server. Please try again later or use OpenRouter.';
+    }
     console.error('Nvidia NIM API Error:', error.message);
     return `Error: ${error.message}`;
   }
@@ -95,6 +106,9 @@ async function queryNvidiaNimFlash(prompt, conversationHistory, apiKey) {
       content: prompt
     });
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000);
+
     const response = await fetch(
       'https://integrate.api.nvidia.com/v1/chat/completions',
       {
@@ -110,9 +124,11 @@ async function queryNvidiaNimFlash(prompt, conversationHistory, apiKey) {
           top_p: 0.95,
           max_tokens: 16384
         }),
-        timeout: 60000
+        signal: controller.signal
       }
     );
+
+    clearTimeout(timeoutId);
 
     const data = await response.json();
 
@@ -127,7 +143,15 @@ async function queryNvidiaNimFlash(prompt, conversationHistory, apiKey) {
 
     return 'Sorry, I could not generate a response. The model may have been blocked or unavailable.';
   } catch (error) {
-    console.error('Nvidia NIM API Error:', error.message);
+    if (error.name === 'AbortError') {
+      console.error('Nvidia NIM Flash API Error: request timed out after 120s');
+      return '⚠️ The DeepSeek V4 Flash model is taking too long (it uses extended reasoning). Please try DeepSeek V4 Pro instead.';
+    }
+    if (error.message.includes('ECONNRESET')) {
+      console.error('Nvidia NIM Flash API Error: connection reset by server');
+      return '⚠️ Connection was reset by the NVIDIA server. Please try again later or use OpenRouter.';
+    }
+    console.error('Nvidia NIM Flash API Error:', error.message);
     return `Error: ${error.message}`;
   }
 }

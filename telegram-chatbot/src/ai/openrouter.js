@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 async function queryOpenRouter(prompt, conversationHistory, apiKey) {
   if (!apiKey) {
     return '⚠️ OpenRouter API key is not configured. Please contact the bot owner.';
@@ -30,6 +28,9 @@ async function queryOpenRouter(prompt, conversationHistory, apiKey) {
       content: prompt
     });
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -44,8 +45,10 @@ async function queryOpenRouter(prompt, conversationHistory, apiKey) {
         temperature: 0.7,
         max_tokens: 2048
       }),
-      timeout: 30000
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     const data = await response.json();
 
@@ -60,6 +63,10 @@ async function queryOpenRouter(prompt, conversationHistory, apiKey) {
 
     return 'Sorry, I could not generate a response. The model may have been blocked or unavailable.';
   } catch (error) {
+    if (error.name === 'AbortError') {
+      console.error('OpenRouter API Error: request timed out after 30s');
+      return '⚠️ The OpenRouter API is taking too long to respond. Please try again later.';
+    }
     console.error('OpenRouter API Error:', error.message);
     return `Error: ${error.message}`;
   }
