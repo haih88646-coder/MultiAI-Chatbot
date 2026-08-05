@@ -67,10 +67,7 @@ app.get('/', (req, res) => {
 // MongoDB Connection
 async function connectDB() {
   try {
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log('✅ MongoDB connected successfully');
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
@@ -90,7 +87,7 @@ async function initBot() {
   try {
     bot = createBot();
 
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'production' || (process.env.APP_URL && !process.env.APP_URL.includes('your-app'))) {
       // Webhook mode for production (Vercel/Render)
       const webhookUrl = `${process.env.APP_URL}/api/telegram-webhook`;
       await bot.telegram.setWebhook(webhookUrl);

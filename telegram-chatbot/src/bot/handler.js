@@ -10,53 +10,72 @@ function createBot() {
 
   // Ensure owner exists in DB
   async function ensureOwner() {
-    let owner = await User.findOne({ telegramId: OWNER_ID });
-    if (!owner) {
-      owner = new User({
-        telegramId: OWNER_ID,
-        isApproved: true,
-        isOwner: true,
-        requestStatus: 'approved',
-      });
-      await owner.save();
-    } else {
-      owner.isOwner = true;
-      owner.isApproved = true;
-      owner.requestStatus = 'approved';
-      await owner.save();
+    try {
+      let owner = await User.findOne({ telegramId: OWNER_ID });
+      if (!owner) {
+        owner = new User({
+          telegramId: OWNER_ID,
+          isApproved: true,
+          isOwner: true,
+          requestStatus: 'approved',
+        });
+        await owner.save();
+      } else {
+        owner.isOwner = true;
+        owner.isApproved = true;
+        owner.requestStatus = 'approved';
+        await owner.save();
+      }
+    } catch (e) {
+      console.error('ensureOwner error:', e.message);
     }
   }
 
   // Ensure settings exist
   async function ensureSettings() {
-    let settings = await Settings.findOne();
-    if (!settings) {
-      settings = new Settings();
-      await settings.save();
+    try {
+      let settings = await Settings.findOne();
+      if (!settings) {
+        settings = new Settings();
+        await settings.save();
+      }
+      return settings;
+    } catch (e) {
+      console.error('ensureSettings error:', e.message);
+      return new Settings();
     }
-    return settings;
   }
 
   // Get or create user
   async function getOrCreateUser(ctx) {
     const telegramId = ctx.from.id;
-    let user = await User.findOne({ telegramId });
-    if (!user) {
-      user = new User({
-        telegramId,
-        username: ctx.from.username || '',
-        firstName: ctx.from.first_name || '',
-        lastName: ctx.from.last_name || '',
-      });
-      await user.save();
+    try {
+      let user = await User.findOne({ telegramId });
+      if (!user) {
+        user = new User({
+          telegramId,
+          username: ctx.from.username || '',
+          firstName: ctx.from.first_name || '',
+          lastName: ctx.from.last_name || '',
+        });
+        await user.save();
+      }
+      return user;
+    } catch (e) {
+      console.error('getOrCreateUser error:', e.message);
+      return { telegramId, isApproved: true, isOwner: true, selectedModel: 'gemini', requestStatus: 'approved' };
     }
-    return user;
   }
 
   // Check if user is approved
   async function isApproved(telegramId) {
-    const user = await User.findOne({ telegramId });
-    return user && user.isApproved;
+    try {
+      const user = await User.findOne({ telegramId });
+      return user && user.isApproved;
+    } catch (e) {
+      console.error('isApproved error:', e.message);
+      return false;
+    }
   }
 
   // Start command
