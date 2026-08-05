@@ -61,7 +61,7 @@ All deployment platforms require the following environment variables. None are h
 | `GEMINI_API_KEY` | Google Gemini API key | (empty — model unavailable) |
 | `OPENROUTER_API_KEY` | OpenRouter API key | (empty — model unavailable) |
 | `NVIDIA_NIM_API_KEY` | NVIDIA NIM API key | (empty — model unavailable) |
-| `DEFAULT_AI_MODEL` | Default AI model if DB settings unset | `gemini` |
+| `DEFAULT_AI_MODEL` | Default AI model if DB settings unset | `openrouter` |
 | `NODE_ENV` | Environment mode | `production` (set automatically) |
 | `PORT` | Server port | `3000` (platform-provided) |
 
@@ -246,7 +246,7 @@ Run the application on your own server (e.g., DigitalOcean, AWS EC2, Linode, or 
    GEMINI_API_KEY=your_gemini_api_key
    OPENROUTER_API_KEY=your_openrouter_api_key
    NVIDIA_NIM_API_KEY=your_nvidia_api_key
-   DEFAULT_AI_MODEL=gemini
+    DEFAULT_AI_MODEL=openrouter
    NODE_ENV=production
    ```
 
@@ -325,7 +325,7 @@ Run the application on your own server (e.g., DigitalOcean, AWS EC2, Linode, or 
    GEMINI_API_KEY=your_gemini_api_key
    OPENROUTER_API_KEY=your_openrouter_api_key
    NVIDIA_NIM_API_KEY=your_nvidia_api_key
-   DEFAULT_AI_MODEL=gemini
+    DEFAULT_AI_MODEL=openrouter
    NODE_ENV=production
    PORT=3000
    ```
