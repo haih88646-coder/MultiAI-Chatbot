@@ -456,6 +456,26 @@ This happens when the project is in a subdirectory (e.g., `telegram-chatbot/`) b
 - In development (`NODE_ENV` not set to `production`), the bot uses **long polling** instead of webhooks. So local development works without a public URL.
 - To test webhooks locally, use [ngrok](https://ngrok.com): `ngrok http 3000`, then set `APP_URL=https://<your-ngrok-url>`.
 
+### File Upload Support
+
+The bot can extract text from uploaded files and analyze them with any AI model. Supported formats:
+
+| Format | Extension | Method |
+|--------|-----------|--------|
+| Plain Text | `.txt` | Direct read |
+| PDF | `.pdf` | `pdf-parse` |
+| Word | `.docx` | `mammoth` |
+| Excel | `.xlsx`, `.xls` | `xlsx` |
+| PowerPoint | `.pptx` | `jszip` + XML parsing |
+| Images | `.jpg`, `.png`, `.gif`, `.webp` | `tesseract.js` OCR |
+
+> **Note:** Image OCR uses `tesseract.js` which adds ~30MB to the deployment. On Render free tier, this may increase build time but should work within memory limits.
+
+**How to use:**
+1. Send a file to the bot in Telegram (as document or photo)
+2. The bot will extract text and send it to your selected AI model
+3. The AI will analyze the file content and respond
+
 ### AI Models
 
 | Model Key | Provider | Model Name | Speed | Notes |
