@@ -3,6 +3,7 @@ const User = require('../models/User');
 const Settings = require('../models/Settings');
 const { query, clearHistory } = require('../ai');
 const { extractTextFromFile } = require('../ai/fileProcessor');
+const { formatForTelegram } = require('./formatter');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -677,8 +678,8 @@ function createBot() {
       'deepseek-flash': '⚡ DeepSeek V4 Flash (Nvidia NIM)',
     };
 
-    return ctx.reply(`✅ Model changed to *${modelNames[model] || model}*`, {
-      parse_mode: 'Markdown',
+    return ctx.reply(`✅ Model changed to <b>${modelNames[model] || model}</b>`, {
+      parse_mode: 'HTML',
     });
   });
 
@@ -720,13 +721,15 @@ function createBot() {
       const modelPreference = user.selectedModel || 'default';
       const aiResponse = await query(extractedText, user.telegramId, modelPreference, true);
 
-      if (aiResponse.length > 4000) {
-        const chunks = aiResponse.match(/[\s\S]{1,4000}/g) || [];
+      const formattedResponse = formatForTelegram(aiResponse);
+
+      if (formattedResponse.length > 4000) {
+        const chunks = formattedResponse.match(/[\s\S]{1,4000}/g) || [];
         for (const chunk of chunks) {
-          await ctx.reply(chunk);
+          await ctx.reply(chunk, { parse_mode: 'HTML' });
         }
       } else {
-        await ctx.reply(aiResponse, { reply_to_message_id: ctx.message.message_id });
+        await ctx.reply(formattedResponse, { reply_to_message_id: ctx.message.message_id, parse_mode: 'HTML' });
       }
     } catch (error) {
       console.error('File processing error:', error.message);
@@ -771,13 +774,15 @@ function createBot() {
       const modelPreference = user.selectedModel || 'default';
       const aiResponse = await query(extractedText, user.telegramId, modelPreference, true);
 
-      if (aiResponse.length > 4000) {
-        const chunks = aiResponse.match(/[\s\S]{1,4000}/g) || [];
+      const formattedResponse = formatForTelegram(aiResponse);
+
+      if (formattedResponse.length > 4000) {
+        const chunks = formattedResponse.match(/[\s\S]{1,4000}/g) || [];
         for (const chunk of chunks) {
-          await ctx.reply(chunk);
+          await ctx.reply(chunk, { parse_mode: 'HTML' });
         }
       } else {
-        await ctx.reply(aiResponse, { reply_to_message_id: ctx.message.message_id });
+        await ctx.reply(formattedResponse, { reply_to_message_id: ctx.message.message_id, parse_mode: 'HTML' });
       }
     } catch (error) {
       console.error('Image processing error:', error.message);
@@ -827,26 +832,30 @@ function createBot() {
       if (response.includes('temporarily overloaded') && !modelPreference.startsWith('openrouter') && !modelPreference.startsWith('cohere') && !modelPreference.startsWith('gemma') && !modelPreference.startsWith('or-free')) {
         await ctx.sendChatAction('typing');
         const fallbackResponse = await query(prompt, user.telegramId, 'openrouter');
-        if (fallbackResponse.length > 4000) {
-          const chunks = fallbackResponse.match(/[\s\S]{1,4000}/g) || [];
+        const formattedFallback = formatForTelegram(fallbackResponse);
+        if (formattedFallback.length > 4000) {
+          const chunks = formattedFallback.match(/[\s\S]{1,4000}/g) || [];
           for (const chunk of chunks) {
-            await ctx.reply(chunk);
+            await ctx.reply(chunk, { parse_mode: 'HTML' });
           }
         } else {
-          await ctx.reply(fallbackResponse, { reply_to_message_id: ctx.message.message_id });
+          await ctx.reply(formattedFallback, { reply_to_message_id: ctx.message.message_id, parse_mode: 'HTML' });
         }
         return;
       }
 
+      const formattedResponse = formatForTelegram(response);
+
       // Split long messages
-      if (response.length > 4000) {
-        const chunks = response.match(/[\s\S]{1,4000}/g) || [];
+      if (formattedResponse.length > 4000) {
+        const chunks = formattedResponse.match(/[\s\S]{1,4000}/g) || [];
         for (const chunk of chunks) {
-          await ctx.reply(chunk);
+          await ctx.reply(chunk, { parse_mode: 'HTML' });
         }
       } else {
-        await ctx.reply(response, {
+        await ctx.reply(formattedResponse, {
           reply_to_message_id: ctx.message.message_id,
+          parse_mode: 'HTML',
         });
       }
     } catch (error) {
