@@ -469,7 +469,7 @@ The bot can extract text from uploaded files and analyze them with any AI model.
 | PowerPoint | `.pptx` | `jszip` + XML parsing |
 | Images | `.jpg`, `.png`, `.gif`, `.webp` | `tesseract.js` OCR |
 
-> **Note:** Image OCR uses `tesseract.js` which adds ~30MB to the deployment. On Render free tier, this may increase build time but should work within memory limits.
+> **Note:** Image OCR uses `tesseract.js` which downloads language data on first use. This may fail on Render free tier due to network/memory limits. If OCR fails, the bot will suggest sending a text file (TXT, PDF, DOCX, XLSX, PPTX) instead.
 
 **How to use:**
 1. Send a file to the bot in Telegram (as document or photo)
