@@ -42,7 +42,7 @@ async function clearHistory(userId) {
   );
 }
 
-async function query(prompt, userId, modelPreference = 'default') {
+async function query(prompt, userId, modelPreference = 'default', fileContent = null) {
   try {
     const settings = await Settings.findOne();
     const conversation = await getConversationHistory(userId);
@@ -50,7 +50,7 @@ async function query(prompt, userId, modelPreference = 'default') {
     // Determine which model to use
     let selectedModel = modelPreference;
     if (selectedModel === 'default') {
-      selectedModel = settings?.defaultModel || process.env.DEFAULT_AI_MODEL || 'gemini';
+      selectedModel = settings?.defaultModel || process.env.DEFAULT_AI_MODEL || 'openrouter';
     }
 
     // Check if model is enabled
@@ -58,6 +58,12 @@ async function query(prompt, userId, modelPreference = 'default') {
       if (settings.enabledModels[selectedModel] === false) {
         return `The ${selectedModel} model is currently disabled by the admin. Please choose another model using /model command.`;
       }
+    }
+
+    // If file content is provided, prepend it to the prompt
+    let fullPrompt = prompt;
+    if (fileContent) {
+      fullPrompt = `[File Content]\n${fileContent}\n\n[User Question]\n${prompt}`;
     }
 
     // Get recent conversation history (last 10 messages for context)
@@ -71,7 +77,7 @@ async function query(prompt, userId, modelPreference = 'default') {
     switch (selectedModel) {
       case 'openrouter':
         response = await queryOpenRouter(
-          prompt,
+          fullPrompt,
           recentHistory,
           process.env.OPENROUTER_API_KEY,
           'openai/gpt-oss-20b:free'
@@ -79,7 +85,7 @@ async function query(prompt, userId, modelPreference = 'default') {
         break;
       case 'cohere':
         response = await queryOpenRouter(
-          prompt,
+          fullPrompt,
           recentHistory,
           process.env.OPENROUTER_API_KEY,
           'cohere/north-mini-code:free'
@@ -87,7 +93,7 @@ async function query(prompt, userId, modelPreference = 'default') {
         break;
       case 'gemma':
         response = await queryOpenRouter(
-          prompt,
+          fullPrompt,
           recentHistory,
           process.env.OPENROUTER_API_KEY,
           'google/gemma-4-26b-a4b-it:free'
@@ -95,7 +101,7 @@ async function query(prompt, userId, modelPreference = 'default') {
         break;
       case 'gemma-large':
         response = await queryOpenRouter(
-          prompt,
+          fullPrompt,
           recentHistory,
           process.env.OPENROUTER_API_KEY,
           'google/gemma-4-31b-it:free'
@@ -103,7 +109,7 @@ async function query(prompt, userId, modelPreference = 'default') {
         break;
       case 'or-free':
         response = await queryOpenRouter(
-          prompt,
+          fullPrompt,
           recentHistory,
           process.env.OPENROUTER_API_KEY,
           'openrouter/free'
@@ -111,7 +117,7 @@ async function query(prompt, userId, modelPreference = 'default') {
         break;
       case 'nvidia':
         response = await queryNvidiaNim(
-          prompt,
+          fullPrompt,
           recentHistory,
           process.env.NVIDIA_NIM_API_KEY,
           'mistralai/mistral-nemotron'
@@ -119,7 +125,7 @@ async function query(prompt, userId, modelPreference = 'default') {
         break;
       case 'llama':
         response = await queryNvidiaNim(
-          prompt,
+          fullPrompt,
           recentHistory,
           process.env.NVIDIA_NIM_API_KEY,
           'meta/llama-3.1-8b-instruct'
@@ -127,7 +133,7 @@ async function query(prompt, userId, modelPreference = 'default') {
         break;
       case 'inkling':
         response = await queryNvidiaNim(
-          prompt,
+          fullPrompt,
           recentHistory,
           process.env.NVIDIA_NIM_API_KEY,
           'thinkingmachines/inkling'
@@ -135,7 +141,7 @@ async function query(prompt, userId, modelPreference = 'default') {
         break;
       case 'deepseek-flash':
         response = await queryNvidiaNim(
-          prompt,
+          fullPrompt,
           recentHistory,
           process.env.NVIDIA_NIM_API_KEY,
           'deepseek-ai/deepseek-v4-flash'
@@ -143,7 +149,7 @@ async function query(prompt, userId, modelPreference = 'default') {
         break;
       default:
         response = await queryOpenRouter(
-          prompt,
+          fullPrompt,
           recentHistory,
           process.env.OPENROUTER_API_KEY,
           'openai/gpt-oss-20b:free'

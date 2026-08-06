@@ -2,6 +2,10 @@ const { Telegraf, Markup } = require('telegraf');
 const User = require('../models/User');
 const Settings = require('../models/Settings');
 const { query, clearHistory } = require('../ai');
+const { extractTextFromFile } = require('../ai/fileProcessor');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 
 const OWNER_ID = parseInt(process.env.OWNER_TELEGRAM_ID, 10);
 
@@ -676,6 +680,103 @@ function createBot() {
     return ctx.reply(`✅ Model changed to *${modelNames[model] || model}*`, {
       parse_mode: 'Markdown',
     });
+  });
+
+  // Handle document/file uploads
+  bot.on('document', async (ctx) => {
+    const user = await getOrCreateUser(ctx);
+    if (!user.isApproved) {
+      return ctx.reply('❌ You need to be approved first. Use /request to request access.');
+    }
+
+    const doc = ctx.message.document;
+    const fileId = doc.file_id;
+    const fileName = doc.file_name || 'unknown';
+    const mimeType = doc.mime_type || '';
+
+    await ctx.reply('📄 Processing file... Please wait.');
+
+    try {
+      const telegramFile = await ctx.telegram.getFile(fileId);
+      const tempDir = os.tmpdir();
+      const tempPath = path.join(tempDir, 'telegram-upload-' + Date.now() + '-' + fileName);
+      
+      const fileUrl = `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${telegramFile.file_path}`;
+      const response = await fetch(fileUrl);
+      const buffer = Buffer.from(await response.arrayBuffer());
+      fs.writeFileSync(tempPath, buffer);
+
+      const extractedText = await extractTextFromFile(tempPath, mimeType, fileName);
+
+      fs.unlinkSync(tempPath);
+
+      if (!extractedText || extractedText.trim().length === 0) {
+        return ctx.reply('⚠️ Could not extract text from this file. The file may be empty, password-protected, or in an unsupported format.');
+      }
+
+      const modelPreference = user.selectedModel || 'default';
+      const aiResponse = await query(extractedText, user.telegramId, modelPreference, true);
+
+      if (aiResponse.length > 4000) {
+        const chunks = aiResponse.match(/[\s\S]{1,4000}/g) || [];
+        for (const chunk of chunks) {
+          await ctx.reply(chunk);
+        }
+      } else {
+        await ctx.reply(aiResponse, { reply_to_message_id: ctx.message.message_id });
+      }
+    } catch (error) {
+      console.error('File processing error:', error.message);
+      await ctx.reply('❌ Error processing file. Please try again.');
+    }
+  });
+
+  // Handle photo uploads (images)
+  bot.on('photo', async (ctx) => {
+    const user = await getOrCreateUser(ctx);
+    if (!user.isApproved) {
+      return ctx.reply('❌ You need to be approved first. Use /request to request access.');
+    }
+
+    const photos = ctx.message.photo;
+    const bestPhoto = photos[photos.length - 1];
+    const fileId = bestPhoto.file_id;
+
+    await ctx.reply('🖼️ Processing image... Please wait.');
+
+    try {
+      const telegramFile = await ctx.telegram.getFile(fileId);
+      const tempDir = os.tmpdir();
+      const tempPath = path.join(tempDir, 'telegram-image-' + Date.now() + '.jpg');
+      
+      const fileUrl = `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${telegramFile.file_path}`;
+      const response = await fetch(fileUrl);
+      const buffer = Buffer.from(await response.arrayBuffer());
+      fs.writeFileSync(tempPath, buffer);
+
+      const extractedText = await extractTextFromFile(tempPath, 'image/jpeg', 'image.jpg');
+
+      fs.unlinkSync(tempPath);
+
+      if (!extractedText || extractedText.trim().length === 0) {
+        return ctx.reply('⚠️ Could not extract text from this image. The image may not contain readable text.');
+      }
+
+      const modelPreference = user.selectedModel || 'default';
+      const aiResponse = await query(extractedText, user.telegramId, modelPreference, true);
+
+      if (aiResponse.length > 4000) {
+        const chunks = aiResponse.match(/[\s\S]{1,4000}/g) || [];
+        for (const chunk of chunks) {
+          await ctx.reply(chunk);
+        }
+      } else {
+        await ctx.reply(aiResponse, { reply_to_message_id: ctx.message.message_id });
+      }
+    } catch (error) {
+      console.error('Image processing error:', error.message);
+      await ctx.reply('❌ Error processing image. Please try again.');
+    }
   });
 
   // Handle text messages (AI chat)
