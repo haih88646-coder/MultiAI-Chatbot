@@ -66,10 +66,23 @@ async function extractTextFromFile(filePath, mimeType, fileName) {
 
     // Images (.jpg, .jpeg, .png, .gif, .bmp, .webp)
     if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(ext) || mimeType.startsWith('image/')) {
-      const result = await Tesseract.recognize(filePath, 'eng', {
-        logger: m => console.log('OCR:', m.status || m),
-      });
-      return result.data.text;
+      try {
+        const result = await Tesseract.recognize(filePath, 'eng', {
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              console.log(`OCR progress: ${(m.progress * 100).toFixed(0)}%`);
+            }
+          },
+        });
+        const text = result.data.text.trim();
+        if (text && text.length > 0) {
+          return text;
+        }
+        return null;
+      } catch (ocrError) {
+        console.error('OCR error:', ocrError.message);
+        return null;
+      }
     }
 
     return null;

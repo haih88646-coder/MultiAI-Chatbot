@@ -703,6 +703,9 @@ function createBot() {
       
       const fileUrl = `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${telegramFile.file_path}`;
       const response = await fetch(fileUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to download file from Telegram: HTTP ${response.status}`);
+      }
       const buffer = Buffer.from(await response.arrayBuffer());
       fs.writeFileSync(tempPath, buffer);
 
@@ -711,7 +714,7 @@ function createBot() {
       fs.unlinkSync(tempPath);
 
       if (!extractedText || extractedText.trim().length === 0) {
-        return ctx.reply('⚠️ Could not extract text from this file. The file may be empty, password-protected, or in an unsupported format.');
+        return ctx.reply('⚠️ Could not extract text from this file. The file may be empty, password-protected, or in an unsupported format. Supported formats: TXT, PDF, DOCX, XLSX, PPTX.');
       }
 
       const modelPreference = user.selectedModel || 'default';
@@ -727,7 +730,7 @@ function createBot() {
       }
     } catch (error) {
       console.error('File processing error:', error.message);
-      await ctx.reply('❌ Error processing file. Please try again.');
+      await ctx.reply('❌ Error processing file: ' + error.message);
     }
   });
 
@@ -742,7 +745,7 @@ function createBot() {
     const bestPhoto = photos[photos.length - 1];
     const fileId = bestPhoto.file_id;
 
-    await ctx.reply('🖼️ Processing image... Please wait.');
+    await ctx.reply('🖼️ Processing image... Please wait. This may take 10-30 seconds.');
 
     try {
       const telegramFile = await ctx.telegram.getFile(fileId);
@@ -751,6 +754,9 @@ function createBot() {
       
       const fileUrl = `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${telegramFile.file_path}`;
       const response = await fetch(fileUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to download image from Telegram: HTTP ${response.status}`);
+      }
       const buffer = Buffer.from(await response.arrayBuffer());
       fs.writeFileSync(tempPath, buffer);
 
@@ -759,7 +765,7 @@ function createBot() {
       fs.unlinkSync(tempPath);
 
       if (!extractedText || extractedText.trim().length === 0) {
-        return ctx.reply('⚠️ Could not extract text from this image. The image may not contain readable text.');
+        return ctx.reply('⚠️ Could not extract text from this image. The image may not contain readable text, or OCR is not available on the server. Try sending a text file instead.');
       }
 
       const modelPreference = user.selectedModel || 'default';
@@ -775,7 +781,7 @@ function createBot() {
       }
     } catch (error) {
       console.error('Image processing error:', error.message);
-      await ctx.reply('❌ Error processing image. Please try again.');
+      await ctx.reply('❌ Error processing image: ' + error.message + '. Try sending a text file (TXT, PDF, DOCX) instead.');
     }
   });
 
@@ -816,6 +822,21 @@ function createBot() {
 
     try {
       const response = await query(prompt, user.telegramId, modelPreference);
+
+      // If NVIDIA returns 529 overload error, retry with OpenRouter as fallback
+      if (response.includes('temporarily overloaded') && !modelPreference.startsWith('openrouter') && !modelPreference.startsWith('cohere') && !modelPreference.startsWith('gemma') && !modelPreference.startsWith('or-free')) {
+        await ctx.sendChatAction('typing');
+        const fallbackResponse = await query(prompt, user.telegramId, 'openrouter');
+        if (fallbackResponse.length > 4000) {
+          const chunks = fallbackResponse.match(/[\s\S]{1,4000}/g) || [];
+          for (const chunk of chunks) {
+            await ctx.reply(chunk);
+          }
+        } else {
+          await ctx.reply(fallbackResponse, { reply_to_message_id: ctx.message.message_id });
+        }
+        return;
+      }
 
       // Split long messages
       if (response.length > 4000) {
